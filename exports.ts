@@ -8,6 +8,7 @@ import * as SFT from "./core/single-file-template";
 import { ActiveNode } from "./core/component-api"
 import {Handler} from "./core/observer";
 import T_ROUTER from "./interfaces/T_router";
+import { Router } from "./router/router";
 
 // declare globals for TS
 declare global {
@@ -17,7 +18,12 @@ declare global {
 }
 
 /**
- * The start of every ActiveJS application
+ * Allows for multiple root components
+ */
+export const router = Router
+
+/**
+ * The start of every FluxJS application
  * @param Component can be an imported component or a router object
  */
 export const createApp = async ( Component: T_COMPONENT | T_ROUTER, renderElement ) => {

@@ -1,10 +1,10 @@
-# ActiveJS Component API
+# FluxJS Component API
 
-ActiveJS is a JavaScript `component` framework written in `TypeScript`. It was built
+FluxJS is a JavaScript `component` framework written in `TypeScript`. It was built
 with performance in mind, and allows you to create beautiful `UI` with ease!
 
 # Sections
-- [Creating an ActiveJS Application](#Creating-an-ActiveJS-Application)
+- [Creating an FluxJS Application](#Creating-an-FluxJS-Application)
 - [Root Component](#Root-Component)
 - [Mounting the App](#Mounting-the-App)
 - [Component Template Files](#Component-Template-Files)
@@ -15,19 +15,19 @@ with performance in mind, and allows you to create beautiful `UI` with ease!
 - [Slots](#Slots)
 
 
-## Creating an ActiveJS Application
-Every ActiveJS application starts by creating a new `App Instance` with the `createApp`
+## Creating an FluxJS Application
+Every FluxJS application starts by creating a new `App Instance` with the `createApp`
 method:
 
 ```js
 // import
-import { createApp } from "@jordan_langton/activejs";
+import { createApp } from "@jordan_langton/FluxJS";
 
 // initialization
 await createApp(/* root component */, /* render element */)
 ```
 
-> `Note*` unfortunately there is no way (at the moment) to have multiple `instances` of an activeJS
+> `Note*` unfortunately there is no way (at the moment) to have multiple `instances` of an FluxJS
 >  application running in one `DOM`
 
 ## Root Component
@@ -36,7 +36,7 @@ a component to pass to `createApp`?
 
 ```js
 // import
-import { createApp, Component } from "@jordan_langton/activejs";
+import { createApp, Component } from "@jordan_langton/FluxJS";
 
 // component
 const App = Component(/* component name */, /* template file */)
@@ -45,7 +45,7 @@ const App = Component(/* component name */, /* template file */)
 await createApp(/* root component */, /* render element */)
 ```
 As you see in the example above, we just use the `Component` method that is exposed to
-you from the ActiveJS `import`. This method will fetch your template component file, and
+you from the FluxJS `import`. This method will fetch your template component file, and
 convert it into a usable component which can now be passed to the `createApp` function.
 
 ## Mounting the App
@@ -54,7 +54,7 @@ This needs to be an actual DOM element.
 
 ```js
 // import
-import { createApp, Component } from "@jordan_langton/activejs";
+import { createApp, Component } from "@jordan_langton/FluxJS";
 
 // component
 const App = Component('App', './App.html')
@@ -64,8 +64,8 @@ await createApp(App, document.querySelector('#app'))
 ```
 
 ## Component Template Files
-ActiveJS `component templates` are HTML files which will represent a component in a 
-readable way. It allows us to encapsulate the template, logic, and styling of an ActiveJS
+FluxJS `component templates` are HTML files which will represent a component in a 
+readable way. It allows us to encapsulate the template, logic, and styling of an FluxJS
 component in a single file.
 ```html
 <script>
@@ -89,7 +89,7 @@ component in a single file.
     }
 </style>
 ```
-As we can see, ActiveJS `component templates` are a natural extension of the classic trio of HTML, 
+As we can see, FluxJS `component templates` are a natural extension of the classic trio of HTML, 
 CSS and JavaScript. The `<template>`, `<script>`, and `<style>` blocks encapsulate and colocate the view,
 logic and styling of a component in the same file.
 
@@ -97,7 +97,7 @@ logic and styling of a component in the same file.
 In order to have multiple `root` components (Main pages in your application) you
 will need to incorporate the `Router`.
 ```js
-import { Router } from "@activejs/router"
+import { Router } from "@FluxJS/router"
 
 // @ts-ignore
 export const $router = new Router([
@@ -127,11 +127,11 @@ property changes.
 ## Registering Children Components
 To use a child component, we need to import it in the parent component. 
 Assuming we created a `component template` called `ButtonCounter.html`, we 
-now need to use the `Component` method exported to you by ActiveJS.
+now need to use the `Component` method exported to you by FluxJS.
 ```html
 <script>
     // import libraries
-    import { Setup, Component } from "@activejs"
+    import { Setup, Component } from "@FluxJS"
     
     // import child
     await Component('ButtonCounter', './ButtonCounter.html')
@@ -150,7 +150,7 @@ now need to use the `Component` method exported to you by ActiveJS.
 > for that child inside other component/children.
 
 ## Passing Props
-In ActiveJS you are able to pass data between a `Parent` & `Child` component. This
+In FluxJS you are able to pass data between a `Parent` & `Child` component. This
 will allow for multiple uses of a component, but different data for each one. To pass a prop
 to a `child` component, we must add an `attribute` to the component `Element`, prefixed
 with a `#`.
@@ -165,7 +165,7 @@ These are just `String` values though. So how would we pass a defined variable f
 ```html
 <script>
     // import libraries
-    import { Setup, Component } from "@activejs"
+    import { Setup, Component } from "@fluxjs"
 
     // import child
     await Component('ButtonCounter', './ButtonCounter.html')

@@ -21,7 +21,7 @@ export const get = (key?: string): any => ((key !== undefined)? Globals[key] : G
 export const set = (globalName: string, globalValue: any) => Globals[globalName] = globalValue
 
 /**
- * Will load a component into ActiveJS
+ * Will load a component into FluxJS
  */
 export const loadComponent = (id: string, component: T_COMPONENT) => (Globals.loaded_components[id] = component)
 
