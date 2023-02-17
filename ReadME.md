@@ -1,4 +1,4 @@
-# ActiveJS
+# ActiveJS Component API
 
 ActiveJS is a JavaScript `component` framework written in `TypeScript`. It was built
 with performance in mind, and allows you to create beautiful `UI` with ease!
