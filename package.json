@@ -2,7 +2,7 @@
   "name": "@flux-js/core",
   "version": "1.0.0",
   "description": "FluxJS is a JavaScript component framework written in TypeScript. It was built with performance in mind, and allows you to create beautiful UI with ease!",
-  "main": "exports.js",
+  "main": "exports.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

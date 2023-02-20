@@ -13,7 +13,7 @@ import { Router } from "./router/router";
 // declare globals for TS
 declare global {
     interface Window {
-
+        Import: Function
     }
 }
 
@@ -43,6 +43,7 @@ export const createApp = async ( Component: T_COMPONENT | T_ROUTER, renderElemen
     else {
         // start setting up the globals for the framework
         Globals.set( "root" , Component)
+        Globals.set( "loadedURLParams" , {URL: '', PARAMS: {}})
     }
 }
 
@@ -145,3 +146,54 @@ export const Reactive = (property: any | object) => {
     Object = {value: property, isReactive: "Primitive"}
     return new Proxy(Object, Handler())
 }
+
+/**
+ * Will load a key value pair into @flux-js
+ * @param propertyName the name you want to use to access the property
+ * @param value the value you want to store fore use later
+ * @constructor
+ */
+export const Use = (propertyName: string, value: any) => {
+    // get all loaded libraries
+    const library: Map = Globals.get().libraries
+
+    // add new data to the list
+    library.set(propertyName, value)
+}
+
+/**
+ *
+ * @param url the name of property you loaded into FluxJS
+ * @constructor
+ */
+export const Import = (url: string) => {
+    // decide where to look for package
+    const containsSlash = (url.indexOf("/") !== -1)
+    const isFluxPackage = (url.indexOf("@flux-js") !== -1)
+    const rgx = new RegExp("/", "g")
+    const parsed = url.replace(rgx, '.').replace('@flux-js.', '')
+
+    // if user is looking for FluxJS export
+    if (isFluxPackage) {
+        // user wants spesific package
+        if (containsSlash) {
+            // check if exists
+            if (!Globals.get().fluxJSExports[parsed]) return console.error(`Import Failed at -> Import(${url}) :: (${parsed}) does not exist as an export from FluxJS`)
+
+            // return the package asked for
+            return utility.getNestedProperty(Globals.get().fluxJSExports, parsed)
+        }
+
+        // return all exports from FluxJS
+        return Globals.get().fluxJSExports
+    }
+
+    // check if the package has been loaded in
+    const Library = Globals.get().libraries
+    if (!Library.has(parsed)) return console.error(`Import Failed at -> Import(${url}) :: (${parsed}) has not been loaded into FluxJS with the Use() method`)
+
+    // return the loaded property
+    return Library.get(parsed)
+}
+
+window.Import = Import

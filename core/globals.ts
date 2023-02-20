@@ -1,5 +1,6 @@
 import T_GLOBALS from "../interfaces/T_globals";
 import T_COMPONENT from "../interfaces/T_component";
+import * as FluxJS from "../exports"
 
 const Globals: T_GLOBALS = {
     root: null,
@@ -8,6 +9,12 @@ const Globals: T_GLOBALS = {
     exposedData: {},
     loaded_components: {},
     component_tree_queue: [],
+
+    // @ts-ignore
+    libraries: new Map([]),
+
+    // all exports from @flux-js
+    fluxJSExports: FluxJS
 }
 
 /**
