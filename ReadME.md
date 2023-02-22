@@ -63,12 +63,38 @@ const App = Component('App', './App.html')
 await createApp(App, document.querySelector('#app'))
 ```
 
+## Loading External Libraries
+Flux-js exports a method called `Use`. This allows you to load any `external` libraries into flux-js.
+```js
+// imports
+import { Use } from '@flux-js'
+
+// other library
+const library = {/***/}
+
+// load into flux-js
+Use("key", library)
+```
+To get your loaded items out from flux-js, you can use the `Import` method.
+```js
+// imports
+import { Import } from '@flux-js'
+
+// get from flux-js
+const value = Import("key")
+const nestedVal = Import("key/nestedVal")
+```
+
 ## Component Template Files
 FluxJS `component templates` are HTML files which will represent a component in a 
 readable way. It allows us to encapsulate the template, logic, and styling of an FluxJS
 component in a single file.
 ```html
 <script>
+    // imports
+    const { Setup } = Import("@flux-js")
+    
+    // onMounted
     await Setup('App', async (context) => {
         // variables
         const heading = "Hello World"
@@ -92,6 +118,20 @@ component in a single file.
 As we can see, FluxJS `component templates` are a natural extension of the classic trio of HTML, 
 CSS and JavaScript. The `<template>`, `<script>`, and `<style>` blocks encapsulate and colocate the view,
 logic and styling of a component in the same file.
+
+## Imports in Template Files
+Native `JavaScript` imports will not work properly inside of `template files`. Instead, you will need to use
+the exported `Import` method (with the `@flux-js` namespace) to get access to flux-js exports eg: (`Setup`, `Component`, `Reactive`)
+>`Note*` the '*Import*' method is `globally` accessible inside the script tags
+```html
+<script>
+    // get all exports
+    const { Setup, Component, Reactive } = Import('@flux-js')
+    
+    // only import specific export
+    const method = Import('@flux-js/Setup')
+</script>
+```
 
 ## Routing
 In order to have multiple `root` components (Main pages in your application) you
@@ -130,8 +170,8 @@ Assuming we created a `component template` called `ButtonCounter.html`, we
 now need to use the `Component` method exported to you by FluxJS.
 ```html
 <script>
-    // import libraries
-    import { Setup, Component } from "@FluxJS"
+    // imports
+    const { Setup, Component } = Import("@flux-js")
     
     // import child
     await Component('ButtonCounter', './ButtonCounter.html')
@@ -165,7 +205,7 @@ These are just `String` values though. So how would we pass a defined variable f
 ```html
 <script>
     // import libraries
-    import { Setup, Component } from "@fluxjs"
+    const { Setup, Component } = Import("@flux-js")
 
     // import child
     await Component('ButtonCounter', './ButtonCounter.html')
@@ -193,11 +233,9 @@ to `assign a value` to the prop.
 Accessing props passed to a `child` component is as easy as pulling them out of the
 `context` object passed to every component.
 ```js
-<script>
-    await Setup('App', async (context) => {
-        const { props } = context
-    })
-</script>
+await Setup('App', async (context) => {
+    const { props } = context
+})
 ```
 
 ## Slots
@@ -226,7 +264,7 @@ comes into play.
 ```html
 <script>
     // import
-    const { Setup, Reactive } Import("@flux-js")
+    const { Setup, Reactive } = Import("@flux-js")
     
     // onMounted
     await Setup('App', async (context) => {
