@@ -218,3 +218,44 @@ The template of <FancyButton> looks like this:
 The `<ajs-slot>` element is a slot outlet that indicates where the parent-provided 
 slot content should be rendered.
 > `Note*` You can only have `one` slot element per component.
+
+## Declaring Reactive State
+In some instances you will want to create some piece of reactive data which is displayed to the user and
+whenever the property is `updated`, the value shown to the user is `changed` too. This is where `Reactive()`
+comes into play.
+```html
+<script>
+    // import
+    const { Setup, Reactive } Import("@flux-js")
+    
+    // onMounted
+    await Setup('App', async (context) => {
+		// primitives
+        const string = Reactive("foo") // { value: 'foo' }
+        const number = Reactive(0) // { value: 0 }
+        
+        // objects
+        const user = Reactive({ name: 'John', age: 21 }) // { name: 'John', age: 21 }
+        
+        // expose properties to the template
+        return { string, number, user }
+    })
+</script>
+```
+As you can see in the example above, we declare a few variables as reactive properties. The properties can 
+now be used in the template and will keep up to date with the latest changes to said property.
+```html
+<template>
+    <p>String Value: { string.value }</p>
+    <p>Number Value: { number.value }</p>
+    <p>Object Value: { user.name } - { user.age }</p>
+</template>
+```
+Turns into
+```html
+<template>
+    <p>String Value: foo</p>
+    <p>Number Value: 0</p>
+    <p>Object Value: John - 21</p>
+</template>
+```
