@@ -24,7 +24,7 @@ method:
 
 ```js
 // import
-import { createApp } from "@jordan_langton/FluxJS";
+import { createApp } from "@flux-js/core";
 
 // initialization
 await createApp(/* root component */, /* render element */)
@@ -39,7 +39,7 @@ a component to pass to `createApp`?
 
 ```js
 // import
-import { createApp, Component } from "@jordan_langton/FluxJS";
+import { createApp, Component } from "@flux-js/core";
 
 // component
 const App = Component(/* component name */, /* template file */)
@@ -57,7 +57,7 @@ This needs to be an actual DOM element.
 
 ```js
 // import
-import { createApp, Component } from "@jordan_langton/FluxJS";
+import { createApp, Component } from "@flux-js/core";
 
 // component
 const App = Component('App', './App.html')
@@ -70,7 +70,7 @@ await createApp(App, document.querySelector('#app'))
 Flux-js exports a method called `Use`. This allows you to load any `external` libraries into flux-js.
 ```js
 // imports
-import { Use } from '@flux-js'
+import { Use } from '@flux-js/core'
 
 // other library
 const library = {/***/}
@@ -81,7 +81,7 @@ Use("key", library)
 To get your loaded items out from flux-js, you can use the `Import` method.
 ```js
 // imports
-import { Import } from '@flux-js'
+import { Import } from '@flux-js/core'
 
 // get from flux-js
 const value = Import("key")
@@ -140,10 +140,10 @@ the exported `Import` method (with the `@flux-js` namespace) to get access to fl
 In order to have multiple `root` components (Main pages in your application) you
 will need to incorporate the `Router`.
 ```js
-import { Router } from "@FluxJS/router"
+import { router } from "@flux-js/core"
 
 // @ts-ignore
-export const $router = new Router([
+export const $router = new router([
     { path: '/', name: 'App', component: './App.html' },
     { path: '/about-us', name: 'AboutUs', component: './AboutUs.html' },
     { path: '/contact-us', name: 'ContactUs', component: './ContactUs.html' },
