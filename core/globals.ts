@@ -9,6 +9,7 @@ const Globals: T_GLOBALS = {
     exposedData: {},
     loaded_components: {},
     component_tree_queue: [],
+    loadedURLParams: {URL: '', PARAMS: {}},
 
     // @ts-ignore
     libraries: new Map([]),
