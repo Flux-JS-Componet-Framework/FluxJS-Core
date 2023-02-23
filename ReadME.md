@@ -7,12 +7,15 @@ with performance in mind, and allows you to create beautiful `UI` with ease!
 - [Creating an FluxJS Application](#Creating-an-FluxJS-Application)
 - [Root Component](#Root-Component)
 - [Mounting the App](#Mounting-the-App)
+- [Loading External Libraries](#Loading-External-Libraries)
 - [Component Template Files](#Component-Template-Files)
+- [Imports in Template Files](#Imports-in-Template-Files)
 - [Routing](#Routing)
 - [HTML Interpolation](#HTML-Interpolation)
 - [Registering Children Components](#Registering-Children-Components)
 - [Passing Props](#Passing-Props)
 - [Slots](#Slots)
+- [Declaring Reactive State](#Declaring-Reactive-State)
 
 
 ## Creating an FluxJS Application

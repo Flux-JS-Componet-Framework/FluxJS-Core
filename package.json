@@ -1,19 +1,22 @@
 {
   "name": "@flux-js/core",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "FluxJS is a JavaScript component framework written in TypeScript. It was built with performance in mind, and allows you to create beautiful UI with ease!",
-  "main": "exports.ts",
+  "exports": {
+    ".": "./exports",
+    "./router": "./router/router"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PostmanPat123/FluxJS-Core.git#v1.0.0-beta"
+    "url": "git+https://github.com/Jordan-Langton/FluxJS-Core.git#v1.0.0-beta"
   },
   "author": "Jordan Langton",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/PostmanPat123/FluxJS-Core/issues"
+    "url": "https://github.com/Jordan-Langton/FluxJS-Core/issues"
   },
-  "homepage": "https://github.com/PostmanPat123/FluxJS-Core/tree/v1.0.0-beta#fluxjs-component-api"
+  "homepage": "https://github.com/Jordan-Langton/FluxJS-Core/tree/v1.0.0-beta#fluxjs-component-api"
 }
