@@ -30,21 +30,20 @@ export const createApp = async ( Component: T_COMPONENT | T_ROUTER, renderElemen
     // set the render element
     Globals.set('renderElement', renderElement)
 
+    // get url info
+    const URL = utility.getCurrentURL()
+    const PARAMS = utility.generateUrlParams(utility.getCurrentParams())
+
+    // set url info
+    Globals.set( "loadedURLParams" , {URL, PARAMS})
+
+    // if router passed, get component based on url
     if (Component.isRouter) {
-
-        // get url info
-        const URL = utility.getCurrentURL()
-        const PARAMS = utility.generateUrlParams(utility.getCurrentParams())
-        Globals.set( "loadedURLParams" , {URL, PARAMS})
-
         const root = await Component.route(URL)
-        Globals.set( "root" , root)
+        return Globals.set( "root" , root)
     }
-    else {
-        // start setting up the globals for the framework
-        Globals.set( "root" , Component)
-        Globals.set( "loadedURLParams" , {URL: '', PARAMS: {}})
-    }
+
+    return Globals.set( "root" , Component)
 }
 
 /**
