@@ -73,7 +73,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             name: self.name,
             slotData: self.slotData,
             props: self.$props,
-            refs: () => self.$refs,
+            DOM: () => self.html(),
         })
 
         // merge props with exposed data from component

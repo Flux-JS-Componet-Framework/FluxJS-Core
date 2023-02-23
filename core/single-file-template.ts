@@ -46,10 +46,13 @@ export const prepareTemplate = async (Component: T_COMPONENT) => {
         let style = document.createElement("style")
         style.innerHTML = Component.styles_text()
         wrapper.prepend(style)
-        wrapper.append(utility.convertTextToDocument(Component.template_text()).body)
+        wrapper.append(
+            utility.convertTextToDocument(
+                Component.template_text()
+            ).body
+        )
 
-        // update the html property on the component
-        Component.html = utility.convertTextToDocument(utility.convertTextToDocument(Component.template_text()).body.innerHTML)
+        Component.html = utility.convertTextToDocument(wrapper.innerHTML)
 
         resolve(Component)
     })
@@ -209,6 +212,14 @@ export const HydrateDOM = (reference: object) => {
                 case 'Object': return replaceObject(property, Element, Rgx)
             }
         })
+        resolve()
+    })
+}
+
+
+export const manageBindingsForDirectives = async (Component: T_COMPONENT): Promise => {
+    return new Promise((resolve: Function) => {
+
         resolve()
     })
 }
