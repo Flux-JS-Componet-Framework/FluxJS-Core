@@ -4,6 +4,7 @@ import {directives} from "../libs/directives"
 import {elementInterpolation} from "./template-parser"
 import * as Globals from "./globals"
 import {Component} from "../exports";
+import {directiveIs_For} from "./directives-api";
 
 /**
  * Adds a component script element to the DOM to run
@@ -70,6 +71,7 @@ export const searchTemplateForDirectives = async (Component: T_COMPONENT): Promi
             for (const directive in directives) {
                 if (element.attributes && element.attributes[directive]) {
                     element.removeAttribute(directive)
+                    debugger
                     element.setAttribute(directives[directive], element.attributes[directive].value);
                 }
             }
@@ -218,7 +220,16 @@ export const HydrateDOM = (reference: object) => {
 
 
 export const manageBindingsForDirectives = async (Component: T_COMPONENT): Promise => {
-    return new Promise((resolve: Function) => {
+    return new Promise(async (resolve: Function) => {
+        // get all the elements in component
+        const Elements = Component.html.body.getElementsByTagName('*')
+        for (let i = 0; i < Elements.length; i++) {
+            // current element
+            let Element = Elements[i]
+
+            // check for the (For) directive on the element
+            Element = await directiveIs_For(Element, Component)
+        }
 
         resolve()
     })

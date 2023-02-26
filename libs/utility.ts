@@ -317,3 +317,13 @@ export const generateUrlParams = (RAW_PARAMS) => {
     return dataForRoute;
 }
 
+export const getKeysFromForDirective = (Element: Element): { alias: string, data: string } => {
+    const attribute = Element.attributes["@For"]
+    const split = attribute.value.split("in")
+    const exposedArray = split[1].replace(/ /g, "")
+    const helpers = split[0].replace(/ /g, "")
+    return {
+        alias: helpers,
+        data: exposedArray
+    }
+}

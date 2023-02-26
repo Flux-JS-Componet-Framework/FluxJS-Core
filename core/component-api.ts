@@ -112,11 +112,14 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             // prepare child template
             await SFT.prepareTemplate(this)
 
+            // search through the template for any directives
+            // await SFT.searchTemplateForDirectives(this)
+
+            //apply directive logic
+            await SFT.manageBindingsForDirectives(this)
+
             // initialize the component and its children
             await SFT.mountChildrenComponents(this)
-
-            // search through the template for any directives
-            await SFT.searchTemplateForDirectives(this)
 
             resolve(this.html)
         })

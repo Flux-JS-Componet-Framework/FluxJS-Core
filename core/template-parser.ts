@@ -21,7 +21,7 @@ export const OnEvents = (Component: T_COMPONENT) => {
             // remove onclick attribute and replace with custom one
             Element.removeAttribute(`on${event}`);
             Element.setAttribute(`js-${event}`, method);
-
+            debugger
             Element[`on${event}`] = (args) => {
                 const functionName = method.split("(")[0]
                 if (exposedData[Component.id][functionName]) {
