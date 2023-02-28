@@ -80,7 +80,7 @@ export const collectReactiveElements = async (Component: T_COMPONENT) => {
                     const propertyName = (found.propertyName.indexOf('.') !== -1)? split[0] : found.propertyName
 
                     // check if the found binding already exists
-                    const existing = reactivity[propertyName]
+                    const existing = reactivity[Component.id]
                     if (existing) {
                         // check if the current element is stored in existing binding
                         if (!existing['Element'].includes(Element)) existing['Element'].push(Element)
@@ -88,7 +88,7 @@ export const collectReactiveElements = async (Component: T_COMPONENT) => {
                     }
                     else {
                         // add the new-found binding
-                        return reactivity[propertyName] = found
+                        return reactivity[Component.id] = found
                     }
                 })
             }

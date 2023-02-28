@@ -156,7 +156,7 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
 /**
  *
  */
-export const HydrateDOM = (reference: object) => {
+export const HydrateDOM = (reference) => {
     return new Promise((resolve) => {
         const exposedData =  Globals.get('exposedData')
 

@@ -16,6 +16,7 @@ with performance in mind, and allows you to create beautiful `UI` with ease!
 - [Passing Props](#Passing-Props)
 - [Slots](#Slots)
 - [Declaring Reactive State](#Declaring-Reactive-State)
+- [List Rendering](#List-Rendering)
 
 
 ## Creating an FluxJS Application
@@ -299,4 +300,26 @@ Turns into
     <p>Number Value: 0</p>
     <p>Object Value: John - 21</p>
 </template>
+```
+
+## List Rendering
+We can use the `@for` directive to render a list of items in an array.
+The directive uses a special syntax in the form of `item in items`,
+where `item` is the *alias* for the array element and `items` is the *Array*.
+```js
+const items = [ { label: 'Foo' }, { label: 'Bar' } ]
+```
+```html
+<li @for="item in items">{ item.label }</li>
+```
+```
+1. Foo
+2. Bar
+```
+As you can see in the example above, the element gets scope to what `item` is
+during the render of the `<li>`.
+
+Adding an event to the element is as easy as just using the default syntax in `HTML`.
+```html
+<li @for="item in items" onclick="item.action()">{ item.label }</li>
 ```

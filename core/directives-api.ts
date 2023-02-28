@@ -13,9 +13,10 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
             const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, Element.outerHTML)
 
             // start the loop over the data array
+            let parsedElementString = ""
             if (dataArray && dataArray.length > 0) dataArray.forEach((item, index) => {
                 // starting string for new element
-                let parsedElementString = ""
+                // let parsedElementString = ""
 
                 // start replacing all found bindings
                 if (Bindings.length > 0) Bindings.forEach(found => {
@@ -26,6 +27,8 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
 
                     if (parsedElementString === "") parsedElementString = Element.outerHTML.replace(Rgx, value)
                     else parsedElementString = parsedElementString.replace(Rgx, value)
+
+                    found['id'] = Component.id
                 })
 
                 // convert string element to HTML
@@ -36,6 +39,9 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
                     newElement.setAttribute(`data-key`, index)
                     newElements.push(newElement)
                 }
+
+                // reset
+                parsedElementString = ""
             })
 
             // insert generated elements at index in parent children
