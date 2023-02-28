@@ -20,14 +20,28 @@ export const OnEvents = (Component: T_COMPONENT) => {
 
             // remove onclick attribute and replace with custom one
             Element.removeAttribute(`on${event}`);
-            Element.setAttribute(`js-${event}`, method);
-            debugger
-            Element[`on${event}`] = (args) => {
+
+            const fn = (args) => {
+                // check if element was created by @FOR directive
+                const dataProperty = Element.attributes["data-property"].value
+                const key = Element.attributes["data-key"].value
+                const alias = Element.attributes["data-alias"].value
+                if (dataProperty) {
+                    const arrayMethodName = method.replace(`${alias}.`, "").split("(")[0]
+                    if (exposedData[Component.id][dataProperty][key][arrayMethodName]) {
+                        return exposedData[Component.id][dataProperty][key][arrayMethodName].call(exposedData[Component.id], args)
+                    }
+                    return
+                }
+
+
                 const functionName = method.split("(")[0]
                 if (exposedData[Component.id][functionName]) {
-                    exposedData[Component.id][functionName].call(exposedData[Component.id], args)
+                    return exposedData[Component.id][functionName].call(exposedData[Component.id], args)
                 }
             }
+            Element[`on${event}`] = fn
+            Element.attributes[`on${event}`] = fn
         }
     })
 }

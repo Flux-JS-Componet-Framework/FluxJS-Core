@@ -30,30 +30,16 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
 
                 // convert string element to HTML
                 const newElement = utility.convertTextToDocument(parsedElementString).body.firstChild
-
-                newElements.push(newElement)
+                if (newElement) {
+                    newElement.setAttribute(`data-property`, keys.data)
+                    newElement.setAttribute(`data-alias`, keys.alias)
+                    newElement.setAttribute(`data-key`, index)
+                    newElements.push(newElement)
+                }
             })
-
-            // check for events
-            newElements.forEach((newElement, index) => {
-                EventTypes.forEach(Event => {
-                    // check if event exists on element
-                    if (newElement.attributes[`on${Event}`]) {
-                        // get function or script you are trying to run
-                        const method = newElement.attributes[`on${Event}`].value
-                            .replace(`${keys.alias}.`, `${keys.data}[${index}].`)
-
-                        // remove onclick attribute and replace with custom one
-                        newElement.setAttribute(`on${Event}`, method)
-                    }
-                })
-            })
-
-            // get index of template element
-            const index = [...Element.parentElement.children].indexOf(Element);
 
             // insert generated elements at index in parent children
-            
+            if (newElements.length > 0) Element.replaceWith(...newElements)
         }
         resolve(Element)
     })
