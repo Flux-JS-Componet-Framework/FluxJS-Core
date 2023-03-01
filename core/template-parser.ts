@@ -59,10 +59,13 @@ export const collectReactiveElements = async (Component: T_COMPONENT) => {
             // make sure Element has no children
             if ((Element.children.length === 0) && (!isChildComponent) && (Bindings.length > 0)) {
                 Bindings.forEach((found, i) => {
+                    // set a data attribute on element
+                    Element.setAttribute("data-refferences", Bindings.length)
+
                     // define defaults
                     found['Element'] = [Element]
                     found['rawHTML'] = Element.innerHTML
-                    found['id'] = Component.id
+                    found['id'] = [Component.id]
                     found['bindings'] = Bindings.reduce((_acc, found) => {
                         _acc.push({
                             ...found,
@@ -72,23 +75,19 @@ export const collectReactiveElements = async (Component: T_COMPONENT) => {
                         return _acc
                     }, [])
 
-                    // set a data attribute on element
-                    Element.setAttribute("data-refferences", Bindings.length)
-
-                    // define name to store binding under
-                    const split = found.propertyName.split(".")
-                    const propertyName = (found.propertyName.indexOf('.') !== -1)? split[0] : found.propertyName
-
                     // check if the found binding already exists
-                    const existing = reactivity[Component.id]
+                    const existing = reactivity[found.propertyName]
                     if (existing) {
                         // check if the current element is stored in existing binding
-                        if (!existing['Element'].includes(Element)) existing['Element'].push(Element)
+                        if (!existing['Element'].includes(Element)) {
+                            existing['Element'].push(Element)
+                            existing['id'].push(Component.id)
+                        }
                         return
                     }
                     else {
                         // add the new-found binding
-                        return reactivity[Component.id] = found
+                        return reactivity[found.propertyName] = found
                     }
                 })
             }
@@ -96,6 +95,6 @@ export const collectReactiveElements = async (Component: T_COMPONENT) => {
 
         Globals.set("reactivity", reactivity)
 
-        resolve(reactivity)
+        resolve(reactivity[Component.id])
     })
 }

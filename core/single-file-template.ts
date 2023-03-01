@@ -125,7 +125,7 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
                         Child = await Child.Mount(Props, Child.id)
 
                         // check for slot data
-                        const childSlotElement = Child.html.body.getElementsByTagName('ajs-slot')
+                        const childSlotElement = Child.html.body.getElementsByTagName('slot')
                         if (childSlotElement.length > 0) {
                             // setup the slot data
                             Child.slotData = utility.convertTextToDocument(element.innerHTML).body
@@ -191,7 +191,7 @@ export const HydrateDOM = (reference) => {
 
         }
 
-        if (reference.Element) reference.Element.forEach(Element => {
+        if (reference.Element) reference.Element.forEach((Element, index) => {
             // define regex for binding
             let value = null
             const Rgx = new RegExp(reference.binding, "g")
@@ -201,8 +201,9 @@ export const HydrateDOM = (reference) => {
             const propertyName = (reference.propertyName.indexOf('.') !== -1)? split[0] : reference.propertyName
 
             // get the property from exposed data
-            const property = exposedData[reference.id][propertyName]
-
+            const ID = reference.id[index]
+            const property = exposedData[ID][propertyName]
+            
             const type = (
                 typeof property === 'object' &&
                 !Array.isArray(property) &&

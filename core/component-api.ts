@@ -91,7 +91,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
         // setup this component's template
         this.html = await this.Setup()
 
-        this.reactivity = await collectReactiveElements(this)
+        // this.reactivity = await collectReactiveElements(this)
         await OnEvents(this)
 
         // wait till the entire component tree has been set up and then render
@@ -118,6 +118,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             // initialize the component and its children
             await SFT.mountChildrenComponents(this)
 
+            await collectReactiveElements(this)
             resolve(this.html)
         })
     }
