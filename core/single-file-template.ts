@@ -196,14 +196,12 @@ export const HydrateDOM = (reference) => {
             let value = null
             const Rgx = new RegExp(reference.binding, "g")
 
-            // define name to store binding under
-            const split = reference.propertyName.split(".")
-            const propertyName = (reference.propertyName.indexOf('.') !== -1)? split[0] : reference.propertyName
+            const isNestedPropterty = (reference.propertyName.indexOf('.') !== -1)
 
             // get the property from exposed data
             const ID = reference.id[index]
-            const property = exposedData[ID][propertyName]
-            
+            const property = (!isNestedPropterty)? exposedData[ID][reference.propertyName] : utility.getNestedProperty(exposedData[ID], reference.propertyName)
+
             const type = (
                 typeof property === 'object' &&
                 !Array.isArray(property) &&
