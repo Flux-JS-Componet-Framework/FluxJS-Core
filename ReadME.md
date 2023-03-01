@@ -16,6 +16,7 @@ with performance in mind, and allows you to create beautiful `UI` with ease!
 - [Passing Props](#Passing-Props)
 - [Slots](#Slots)
 - [Declaring Reactive State](#Declaring-Reactive-State)
+- [List Rendering](#List-Rendering)
 
 
 ## Creating an FluxJS Application
@@ -101,14 +102,16 @@ component in a single file.
     await Setup('App', async (context) => {
         // variables
         const heading = "Hello World"
+        const object = {foo: 'bar'}
         
         // expose to template below
-        return { heading }
+        return { heading, object }
     })
 </script>
 
 <template>
     <h1>{ heading }</h1>
+    <h1>{ object.foo }</h1>
 </template>
 
 <style>
@@ -185,7 +188,7 @@ now need to use the `Component` method exported to you by FluxJS.
 
 <template>
     <!-- child component -->
-    <ajs-ButtonCounter></ajs-ButtonCounter>
+    <ButtonCounter></ButtonCounter>
 </template>
 ```
 > `Note*` The `Component` method will import on a `framework` level. Meaning if 
@@ -200,7 +203,7 @@ with a `#`.
 ```html
 <template>
     <!-- child component -->
-    <ajs-ButtonCounter #foo="bar" #hello="world"></ajs-ButtonCounter>
+    <ButtonCounter #foo="bar" #hello="world"></ButtonCounter>
 </template>
 ```
 In the example above you can see `2` props being passed to our `ButtonCounter` component.
@@ -217,16 +220,23 @@ These are just `String` values though. So how would we pass a defined variable f
     await Setup('App', async (context) => {
         const items = []
         const click = () => console.log("I was clicked")
+        const user = {firstname: 'John', lastname: 'Doe'}
         return { 
             customVariable: 'Hello World',
             items, 
-            click 
+            click,
+            user
         }
     })
 </script>
 <template>
     <!-- child component -->
-    <ajs-ButtonCounter #customVariable #items #click></ajs-ButtonCounter>
+    <ButtonCounter
+            #user.firstname
+            #customVariable 
+            #items 
+            #click
+    ></ButtonCounter>
 </template>
 ```
 As you can see above, we first define the `variable` and return it from the component 
@@ -253,10 +263,10 @@ example, we may have a `<FancyButton>` component that supports usage like this:
 The template of <FancyButton> looks like this:
 ```html
 <button class="fancy-btn">
-  <ajs-slot></ajs-slot> <!-- slot outlet -->
+  <slot></slot> <!-- slot outlet -->
 </button>
 ```
-The `<ajs-slot>` element is a slot outlet that indicates where the parent-provided 
+The `<slot>` element is a slot outlet that indicates where the parent-provided 
 slot content should be rendered.
 > `Note*` You can only have `one` slot element per component.
 
@@ -299,4 +309,51 @@ Turns into
     <p>Number Value: 0</p>
     <p>Object Value: John - 21</p>
 </template>
+```
+
+## List Rendering
+We can use the `@for` directive to render a list of items in an array.
+The directive uses a special syntax in the form of `item in items`,
+where `item` is the *alias* for the array element and `items` is the *Array*.
+```js
+const items = [ { label: 'Foo' }, { label: 'Bar' } ]
+```
+```html
+<li @for="item in items">{ item.label }</li>
+```
+```
+1. Foo
+2. Bar
+```
+As you can see in the example above, the element gets scope to what `item` is
+during the render of the `<li>`.
+
+Adding an event to the element is as easy as just using the default syntax in `HTML`.
+```html
+<li @for="item in items" onclick="item.action()">{ item.label }</li>
+```
+## List Component Rendering
+The `@for` directive can also be placed on a `child` component. This will `template` the registration
+of a child, allowing you to pass data as props directly from the `Array`. Lets take a look
+at an example below.
+```js
+    await Setup('App', async (context) => {
+        const cards = [
+            { header: 'Card 1', content: 'This is for card 1' },
+            { header: 'Card 2', content: 'This is for card 2' },
+        ]
+    
+        return { cards }
+    })
+```
+```html
+    <!-- 
+    Passing a direct reference of (header, content) 
+    to the Card component as props 
+    -->
+    <Card
+        @for="card in cards"
+        #card.header
+        #card.content
+    ></Card>
 ```

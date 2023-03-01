@@ -73,7 +73,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             name: self.name,
             slotData: self.slotData,
             props: self.$props,
-            refs: () => self.$refs,
+            DOM: () => self.html(),
         })
 
         // merge props with exposed data from component
@@ -91,7 +91,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
         // setup this component's template
         this.html = await this.Setup()
 
-        this.reactivity = await collectReactiveElements(this)
+        // this.reactivity = await collectReactiveElements(this)
         await OnEvents(this)
 
         // wait till the entire component tree has been set up and then render
@@ -112,12 +112,13 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             // prepare child template
             await SFT.prepareTemplate(this)
 
+            //apply directive logic
+            await SFT.manageBindingsForDirectives(this)
+
             // initialize the component and its children
             await SFT.mountChildrenComponents(this)
 
-            // search through the template for any directives
-            await SFT.searchTemplateForDirectives(this)
-
+            await collectReactiveElements(this)
             resolve(this.html)
         })
     }

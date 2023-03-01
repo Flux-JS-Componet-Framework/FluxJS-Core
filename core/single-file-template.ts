@@ -4,6 +4,7 @@ import {directives} from "../libs/directives"
 import {elementInterpolation} from "./template-parser"
 import * as Globals from "./globals"
 import {Component} from "../exports";
+import {directiveIs_For} from "./directives-api";
 
 /**
  * Adds a component script element to the DOM to run
@@ -46,10 +47,13 @@ export const prepareTemplate = async (Component: T_COMPONENT) => {
         let style = document.createElement("style")
         style.innerHTML = Component.styles_text()
         wrapper.prepend(style)
-        wrapper.append(utility.convertTextToDocument(Component.template_text()).body)
+        wrapper.append(
+            utility.convertTextToDocument(
+                Component.template_text()
+            ).body
+        )
 
-        // update the html property on the component
-        Component.html = utility.convertTextToDocument(utility.convertTextToDocument(Component.template_text()).body.innerHTML)
+        Component.html = utility.convertTextToDocument(wrapper.innerHTML)
 
         resolve(Component)
     })
@@ -67,6 +71,7 @@ export const searchTemplateForDirectives = async (Component: T_COMPONENT): Promi
             for (const directive in directives) {
                 if (element.attributes && element.attributes[directive]) {
                     element.removeAttribute(directive)
+                    debugger
                     element.setAttribute(directives[directive], element.attributes[directive].value);
                 }
             }
@@ -120,7 +125,7 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
                         Child = await Child.Mount(Props, Child.id)
 
                         // check for slot data
-                        const childSlotElement = Child.html.body.getElementsByTagName('ajs-slot')
+                        const childSlotElement = Child.html.body.getElementsByTagName('slot')
                         if (childSlotElement.length > 0) {
                             // setup the slot data
                             Child.slotData = utility.convertTextToDocument(element.innerHTML).body
@@ -151,7 +156,7 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
 /**
  *
  */
-export const HydrateDOM = (reference: object) => {
+export const HydrateDOM = (reference) => {
     return new Promise((resolve) => {
         const exposedData =  Globals.get('exposedData')
 
@@ -186,17 +191,16 @@ export const HydrateDOM = (reference: object) => {
 
         }
 
-        if (reference.Element) reference.Element.forEach(Element => {
+        if (reference.Element) reference.Element.forEach((Element, index) => {
             // define regex for binding
             let value = null
             const Rgx = new RegExp(reference.binding, "g")
 
-            // define name to store binding under
-            const split = reference.propertyName.split(".")
-            const propertyName = (reference.propertyName.indexOf('.') !== -1)? split[0] : reference.propertyName
+            const isNestedPropterty = (reference.propertyName.indexOf('.') !== -1)
 
             // get the property from exposed data
-            const property = exposedData[reference.id][propertyName]
+            const ID = reference.id[index]
+            const property = (!isNestedPropterty)? exposedData[ID][reference.propertyName] : utility.getNestedProperty(exposedData[ID], reference.propertyName)
 
             const type = (
                 typeof property === 'object' &&
@@ -209,6 +213,23 @@ export const HydrateDOM = (reference: object) => {
                 case 'Object': return replaceObject(property, Element, Rgx)
             }
         })
+        resolve()
+    })
+}
+
+
+export const manageBindingsForDirectives = async (Component: T_COMPONENT): Promise => {
+    return new Promise(async (resolve: Function) => {
+        // get all the elements in component
+        const Elements = Component.html.body.getElementsByTagName('*')
+        for (let i = 0; i < Elements.length; i++) {
+            // current element
+            let Element = Elements[i]
+
+            // check for the (For) directive on the element
+            Element = await directiveIs_For(Element, Component)
+        }
+
         resolve()
     })
 }

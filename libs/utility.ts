@@ -205,7 +205,7 @@ export const childrenContainsRootComponent = (children: Array<T_COMPONENT>): boo
     return childIsRoot
 }
 
-export const getChildPropsFromElement = async (Element: Element, Self): object => {
+export const getChildPropsFromElement = async (Element: Element, Self: T_COMPONENT): object => {
     const Props = {}
     for (let i = 0; i < Element.attributes.length; i++) {
         const attribute = Element.attributes[i]
@@ -214,6 +214,10 @@ export const getChildPropsFromElement = async (Element: Element, Self): object =
         if (attribute.name.indexOf('#') !== -1) {
             // define the value
             let propValue = null
+
+            // remove the hashtag from attribute name
+            const parsedAttribute = attribute.name.replace("#", "")
+            const attributeSplit = parsedAttribute.split('.')
 
             // check for any interpolation in attribute value
             const exposedData =  Globals.get('exposedData')
@@ -230,15 +234,23 @@ export const getChildPropsFromElement = async (Element: Element, Self): object =
                 })
             }
             else {
-                // remove the hashtag from attribute name
-                const parsedAttribute = attribute.name.replace("#", "")
-
-                // check if there is no value for the attribute
-                const value = exposedData[Self.id][parsedAttribute]
-                if (attribute.value === "") propValue = value
+                // check if (parsedAttribute) is nested
+                if (parsedAttribute.indexOf('.') !== -1) {
+                    // check if element was created by @FOR directive
+                    const Array = (Element.attributes["data-property"])? Element.attributes["data-property"].value : null
+                    const key = (Element.attributes["data-key"])? Element.attributes["data-key"].value : null
+                    const property = attributeSplit[attributeSplit.length -1]
+                    if (Array) propValue = exposedData[Self.id][Array][key][property]
+                    else propValue = getNestedProperty(exposedData[Self.id], parsedAttribute)
+                }
+                else {
+                    // check if there is no value for the attribute
+                    const value = exposedData[Self.id][parsedAttribute]
+                    if (attribute.value === "") propValue = value
+                }
             }
 
-            if (attribute.value === "") Props[propertyName] = propValue
+            if (attribute.value === "") Props[attributeSplit[attributeSplit.length -1]] = propValue
             else Props[propertyName] = attribute.value
         }
     }
@@ -317,3 +329,13 @@ export const generateUrlParams = (RAW_PARAMS) => {
     return dataForRoute;
 }
 
+export const getKeysFromForDirective = (Element: Element): { alias: string, data: string } => {
+    const attribute = Element.attributes["@For"]
+    const split = attribute.value.split("in")
+    const exposedArray = split[1].replace(/ /g, "")
+    const helpers = split[0].replace(/ /g, "")
+    return {
+        alias: helpers,
+        data: exposedArray
+    }
+}
