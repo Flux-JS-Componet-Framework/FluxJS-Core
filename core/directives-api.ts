@@ -6,7 +6,7 @@ import {EventTypes} from "../libs/directives";
 export const directiveIs_For = async (Element: Element, Component: T_COMPONENT): Promise<Element> => {
     return new Promise(async (resolve) => {
         // check if the element has the @for attribute
-        if (Element.attributes && Element.attributes["@For"]) {
+        if (Element.attributes && Element.attributes["@for"]) {
             const newElements: Array<Element> = []
             const keys = utility.getKeysFromForDirective(Element)
             const dataArray: Array<any> = Globals.get().exposedData[Component.id][keys.data]
