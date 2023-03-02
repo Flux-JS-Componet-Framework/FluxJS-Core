@@ -163,7 +163,7 @@ export const getInterpolationReferences = async (rgx:RegExp, String: string): Pr
 /**
  * Will create a valid name for a component
  */
-export const getElementKey = (name: string) => `ajs-${name.toLowerCase()}`
+export const getElementKey = (name: string) => `${name.toLowerCase()}`
 
 /**
  * Will check if a component has children

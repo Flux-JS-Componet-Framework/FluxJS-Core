@@ -337,23 +337,33 @@ The `@for` directive can also be placed on a `child` component. This will `templ
 of a child, allowing you to pass data as props directly from the `Array`. Lets take a look
 at an example below.
 ```js
-    await Setup('App', async (context) => {
-        const cards = [
-            { header: 'Card 1', content: 'This is for card 1' },
-            { header: 'Card 2', content: 'This is for card 2' },
-        ]
-    
-        return { cards }
-    })
+await Setup('App', async (context) => {
+    const cards = [
+        { header: 'Card 1', content: 'This is for card 1', action: () => null },
+        { header: 'Card 2', content: 'This is for card 2', action: () => null },
+    ]
+
+    return { cards }
+})
 ```
 ```html
-    <!-- 
-    Passing a direct reference of (header, content) 
-    to the Card component as props 
-    -->
-    <Card
-        @for="card in cards"
-        #card.header
-        #card.content
-    ></Card>
+<!-- 
+Passing a direct reference of (header, content) 
+to the Card component as props 
+-->
+<Card
+    @for="card in cards"
+    #card.header
+    #card.content
+></Card>
+```
+You can also define an event on your child component from the list being
+iterated over.
+```html
+<Card
+    @for="card in cards"
+    #card.header
+    #card.content
+    onclick="card.action()"
+></Card>
 ```

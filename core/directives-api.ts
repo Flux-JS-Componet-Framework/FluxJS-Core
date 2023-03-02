@@ -19,7 +19,7 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
                 // let parsedElementString = ""
 
                 // start replacing all found bindings
-                if (Bindings.length > 0) Bindings.forEach(found => {
+                Bindings.forEach(found => {
                     const Rgx = new RegExp(found.binding, "g")
                     const value = (found.propertyName.indexOf(".") !== -1)
                         ? utility.getNestedProperty(item, found.propertyName.replace(`${keys.alias}.`, ""))
@@ -31,12 +31,21 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
                     found['id'] = Component.id
                 })
 
+                // if there are no bindings found set the parsedElementString up
+                parsedElementString = Element.outerHTML
+
                 // convert string element to HTML
                 const newElement = utility.convertTextToDocument(parsedElementString).body.firstChild
                 if (newElement) {
+                    // remove @for attribute
+                    newElement.removeAttribute('@for')
+
+                    // if element has event on it define options for it
                     newElement.setAttribute(`data-property`, keys.data)
                     newElement.setAttribute(`data-alias`, keys.alias)
                     newElement.setAttribute(`data-key`, index)
+
+
                     newElements.push(newElement)
                 }
 

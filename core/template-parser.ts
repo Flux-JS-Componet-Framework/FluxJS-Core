@@ -13,6 +13,7 @@ export const OnEvents = (Component: T_COMPONENT) => {
         const Elements = Component.html.body.querySelectorAll(`[on${event}]`)
         for (let i = 0; i < Elements.length; i++) {
             const Element = Elements[i]
+            const Attributes = Element.attributes
 
             // get function or script you are trying to run
             const method = Element.attributes[`on${event}`].value;
@@ -23,9 +24,9 @@ export const OnEvents = (Component: T_COMPONENT) => {
 
             const fn = (args) => {
                 // check if element was created by @FOR directive
-                const dataProperty = Element.attributes["data-property"].value
-                const key = Element.attributes["data-key"].value
-                const alias = Element.attributes["data-alias"].value
+                const dataProperty = (Attributes["data-property"])? Attributes["data-property"].value : null
+                const key = (Attributes["data-key"])? Attributes["data-key"].value : null
+                const alias = (Attributes["data-alias"])? Attributes["data-alias"].value: null
                 if (dataProperty) {
                     const arrayMethodName = method.replace(`${alias}.`, "").split("(")[0]
                     if (exposedData[Component.id][dataProperty][key][arrayMethodName]) {
