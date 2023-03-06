@@ -6,7 +6,7 @@ import * as utility from "./libs/utility"
 import * as Globals from "./core/globals"
 import * as SFT from "./core/single-file-template";
 import { ActiveNode } from "./core/component-api"
-import {Handler} from "./core/observer";
+import {Handler, Set} from "./core/observer";
 import T_ROUTER from "./interfaces/T_router";
 import { Router } from "./router/router";
 
@@ -14,6 +14,7 @@ import { Router } from "./router/router";
 declare global {
     interface Window {
         Import: Function
+        Globals: Object
     }
 }
 
@@ -123,8 +124,8 @@ export const Setup = async (name: string, mounted: Function) => {
  * @param property a primitive value | object
  * @constructor
  */
-export const Reactive = (property: any | object) => {
-    let Object = null
+export const Reactive = (key: string, property: any | object) => {
+    let object = null
     const checkForNestedObjectsAndMakeReactive = (data) => {
         for (const valueKey in data) {
             if (!(Array.isArray(data[valueKey])) && (typeof data[valueKey] === 'object')) {
@@ -137,13 +138,23 @@ export const Reactive = (property: any | object) => {
     // if property is object
     if (!(Array.isArray(property)) && (typeof property === 'object')) {
         checkForNestedObjectsAndMakeReactive(property)
-        Object = {...property, isReactive: "Object"}
+        object = {...property, isReactive: "Object"}
         return new Proxy(Object, Handler())
     }
 
+    // if property is Array
+    if (property.constructor === Array) {
+        const target = {
+            Array: property,
+            name: key,
+            isDirective: true
+        }
+        // @ts-ignore
+        return [property, (callback) => Set(target, undefined, callback(property))]
+    }
 
-    Object = {value: property, isReactive: "Primitive"}
-    return new Proxy(Object, Handler())
+    object = {value: property, isReactive: "Primitive"}
+    return new Proxy(object, Handler())
 }
 
 /**
@@ -196,3 +207,4 @@ export const Import = (url: string) => {
 }
 
 window.Import = Import
+window.Globals = Globals

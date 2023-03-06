@@ -81,12 +81,13 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
         exposedData[self.id] = {...passed_props, ...reactiveProperties}
 
         // check for Defined props
-        for (const key in exposedData[self.id]) {
-            // if property was created using Def(), store real property name
-            if (exposedData[self.id][key]?.isReactive) {
-                exposedData[self.id][key]["name"] = key;
-            }
-        }
+        // const data = exposedData[self.id]
+        // for (const key in data) {
+        //     // if property was created using Def(), store real property name
+        //     if (data[key]?.isReactive) {
+        //         data[key]["name"] = key;
+        //     }
+        // }
 
         // setup this component's template
         this.html = await this.Setup()
@@ -118,6 +119,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             // initialize the component and its children
             await SFT.mountChildrenComponents(this)
 
+            // start collection of reactive elements
             await collectReactiveElements(this)
             resolve(this.html)
         })
@@ -144,8 +146,6 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             }
 
             Globals.set("RenderProcessStarted", false)
-
-            console.log(Globals.get())
 
             resolve(this)
         })

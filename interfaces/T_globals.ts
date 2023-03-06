@@ -13,6 +13,9 @@ export default interface T_GLOBALS {
     // list of every reactive property in use
     reactivity: T_REACTIVE_ELEMENT | object,
 
+    // list of every reactive property in use
+    directives: object,
+
     // every loaded component's exposed properties
     exposedData: object,
 

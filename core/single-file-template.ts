@@ -159,6 +159,8 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
 export const HydrateDOM = (reference) => {
     return new Promise((resolve) => {
         const exposedData =  Globals.get('exposedData')
+        const Rgx = new RegExp(reference.binding, "g")
+        const isNestedPropterty = (reference.propertyName.indexOf('.') !== -1)
 
         const replacePrimitive = (property, Element, Rgx) => {
             // replace
@@ -191,26 +193,30 @@ export const HydrateDOM = (reference) => {
 
         }
 
+        const replaceArray = (property, Element, Rgx) => {
+            const key = Element.attributes['data-key'].value
+            const alias = Element.attributes['data-alias'].value
+            const Item = property[key]
+            if (!Item) {
+
+            }
+
+            debugger
+        }
+
         if (reference.Element) reference.Element.forEach((Element, index) => {
             // define regex for binding
             let value = null
-            const Rgx = new RegExp(reference.binding, "g")
-
-            const isNestedPropterty = (reference.propertyName.indexOf('.') !== -1)
 
             // get the property from exposed data
             const ID = reference.id[index]
             const property = (!isNestedPropterty)? exposedData[ID][reference.propertyName] : utility.getNestedProperty(exposedData[ID], reference.propertyName)
-
-            const type = (
-                typeof property === 'object' &&
-                !Array.isArray(property) &&
-                property !== null
-            ) ? "Object" : "Primitive"
-
-            switch (type) {
+            
+            // start updating placeholders with values
+            switch (reference.type) {
                 case 'Primitive': return replacePrimitive(property, Element, Rgx)
                 case 'Object': return replaceObject(property, Element, Rgx)
+                // case 'Array': return replaceArray(property, Element, Rgx)
             }
         })
         resolve()

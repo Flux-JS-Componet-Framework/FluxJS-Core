@@ -240,7 +240,10 @@ export const getChildPropsFromElement = async (Element: Element, Self: T_COMPONE
                     const Array = (Element.attributes["data-property"])? Element.attributes["data-property"].value : null
                     const key = (Element.attributes["data-key"])? Element.attributes["data-key"].value : null
                     const property = attributeSplit[attributeSplit.length -1]
-                    if (Array) propValue = exposedData[Self.id][Array][key][property]
+
+                    if (Array) {
+                        propValue = exposedData[Self.id][Array][key][property]
+                    }
                     else propValue = getNestedProperty(exposedData[Self.id], parsedAttribute)
                 }
                 else {

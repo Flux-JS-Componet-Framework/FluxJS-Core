@@ -6,6 +6,7 @@ const Globals: T_GLOBALS = {
     root: null,
     onMounted: [],
     reactivity: {},
+    directives: {},
     exposedData: {},
     loaded_components: {},
     component_tree_queue: [],

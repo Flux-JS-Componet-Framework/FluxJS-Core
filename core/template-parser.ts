@@ -62,11 +62,14 @@ export const collectReactiveElements = async (Component: T_COMPONENT) => {
                 Bindings.forEach((found, i) => {
                     // set a data attribute on element
                     Element.setAttribute("data-refferences", Bindings.length)
+                    const isDirectiveBound = (Element.attributes.getNamedItem("data-property"))? true : false
 
                     // define defaults
                     found['Element'] = [Element]
                     found['rawHTML'] = Element.innerHTML
                     found['id'] = [Component.id]
+                    found['type'] = (found.propertyName.indexOf('.') !== -1)? 'Object' : "Primitive"
+                    found['isdirectiveBound'] = isDirectiveBound
                     found['bindings'] = Bindings.reduce((_acc, found) => {
                         _acc.push({
                             ...found,
