@@ -121,3 +121,6 @@ export const EventTypes = [
     'submit',
     'wheel',
 ]
+export const directiveAttributes = [
+    'data-property'
+]

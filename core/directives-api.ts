@@ -4,6 +4,7 @@ import * as Globals from "./globals"
 import {EventTypes} from "../libs/directives";
 import { HydrateDOM } from "./single-file-template";
 import {getInterpolationReferences} from "../libs/utility";
+import * as SFT from "@flux-js/core/core/single-file-template";
 
 export const directiveIs_For = async (Element: Element, Component: T_COMPONENT): Promise<Element> => {
     return new Promise(async (resolve) => {
@@ -21,30 +22,27 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
 
             // directives need to be stored separately to reactivity
             const newBinding = {}
-            newBinding['id'] = Component.id
-            newBinding['Element'] = [...newElements]
+            newBinding['id'] = []
+            newBinding['Element'] = []
             newBinding['type'] = "@for"
             newBinding['Array'] = dataArray
             newBinding['keys'] = keys
 
             // setup raw HTML for element
-            const newPossibleChild = Object.assign({}, Globals.getComponentByKey(Element.localName))
-            Element.innerHTML = newPossibleChild.template_text()
-            newBinding['rawHTML'] = Element.outerHTML
-
-            // setup the bindings
-            const newElementBindings = await utility.getInterpolationReferences(/{([^}]+)}/g, Element.outerHTML)
-            newBinding['Bindings'] = newElementBindings
+            if (isChildComponent) {
+                const newPossibleChild = Object.assign({}, Globals.getComponentByKey(Element.localName))
+                Element.innerHTML = newPossibleChild.template_text()
+                newBinding['rawHTML'] = Element.outerHTML
+            }
 
             // save the new directive
-            Directives[keys.data] = newBinding
+            // Directives[Component.id] = newBinding
         }
         resolve(Element)
     })
 }
 
 export const updateForDirective = async (Binding, propertyName) => {
-    const Reactivity = Globals.get().reactivity
     const Directives = Globals.get().directives
     const elements = document.querySelectorAll(`[data-property=${propertyName}]`)
     for (let i = 0; i < elements.length; i++) {
@@ -67,19 +65,13 @@ export const updateForDirective = async (Binding, propertyName) => {
             // replace old element with new
             Element.replaceWith(...newElements)
 
-             // update directive binding with new elements array
-            Directives[propertyName].Element = newElements
-
             // update reactive binding's Element property with newly generated elements
-            const newReactivityElements = await updateReactiveElementsInBinding(Binding.rawHTML, Reactivity[propertyName].Element)
-            debugger
-
-            Reactivity[propertyName].Element = newReactivityElements
+            await updateReactiveElementsInBinding(Binding.rawHTML)
 
             // run hydration for reactive elements
-            for (const i in Bindings) {
-                const found = Reactivity[Bindings[i].propertyName]
-                await HydrateDOM(found)
+            for (const i in binding.bindings) {
+                const found = binding.bindings[i]
+                await SFT.HydrateDOM(found)
             }
         }
     }
@@ -136,7 +128,8 @@ const generateElementsToBeRendered = (dataArray, Bindings, keys, Element): Array
     return newElements
 }
 
-export const updateReactiveElementsInBinding = async (String: string, BindingElements) => {
+export const updateReactiveElementsInBinding = async (String: string) => {
+    const Reactivity = Globals.get().reactivity
     const Document = utility.convertTextToDocument(String)
     const Elements = Document.body.getElementsByTagName('*')
 
@@ -151,30 +144,21 @@ export const updateReactiveElementsInBinding = async (String: string, BindingEle
 
         // collect all bindings
         const Bindings = await getInterpolationReferences(/{([^}]+)}/g, Element.outerHTML)
-
         Bindings.forEach(Binding => {
-            // check if the current element is stored in existing binding
-            const existing = BindingElements
-            const index = existing.Element.some((element) => element === Element)
-            // if (!existingElements.includes(Element)) {
-            //     existing.Element = [...existing.Element, Element]
-            // }
+
+            // check for the existing binding holding the elements to be updated
+            const Existing = Reactivity[Binding.propertyName]
+            if (Existing) {
+                // start removing all elements from binding that were to do with the @for directive
+                debugger
+                Existing.Element.forEach(existingElement => {
+                    const attributes = existingElement.attributes
+                    if (attributes['data-property']) {
+                        console.log(existingElement)
+                        debugger
+                    }
+                })
+            }
         })
-        // start building up list of reactive elements
-        // if ((Element.children.length === 0) && (!isChildComponent)) {
-        //     Bindings.forEach(Binding => {
-        //         // start building up data for binding
-        //         // Binding["Element"] = [Element]
-        //
-        //         // check if the current element is stored in existing binding
-        //         const existing = Globals.get().reactivity[Binding.propertyName]
-        //         const existingElements = existing.Element
-        //         if (!existing.Element.includes(Element)) {
-        //             existing.Element = [...existing.Element, Element]
-        //         }
-        //     })
-        //     console.log(Globals.get().reactivity)
-        //     debugger
-        // }
     }
 }
