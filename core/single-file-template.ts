@@ -134,6 +134,9 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
                             childSlotElement[0].replaceWith(Child.slotData)
                         }
 
+                        // check to see if the element has the @for directive
+                        if (element.attributes['data-property']) return
+
                         // clear out component element
                         element.innerHTML = ""
 
@@ -168,9 +171,10 @@ export const HydrateDOM = (reference) => {
         }
 
         const replaceObject = (property, Element, Rgx) => {
+            debugger
             // check to see if the object is a reactive property
-            if (property.hasOwnProperty('isReactive')) {
-                if (property.isReactive === 'Primitive') {
+            if (reference.isReactive) {
+                if (reference.type === 'Primitive') {
                     replacePrimitive(
                         property.value,
                         Element,
@@ -178,7 +182,7 @@ export const HydrateDOM = (reference) => {
                     )
                 }
 
-                if (property.isReactive === 'Object') {
+                if (reference.type === 'Object') {
                     // define name to store binding under
                     const split = reference.propertyName.split(".")
                     const propertyName = (reference.propertyName.indexOf('.') !== -1)? split[split.length -1] : reference.propertyName
@@ -193,17 +197,6 @@ export const HydrateDOM = (reference) => {
 
         }
 
-        const replaceArray = (property, Element, Rgx) => {
-            const key = Element.attributes['data-key'].value
-            const alias = Element.attributes['data-alias'].value
-            const Item = property[key]
-            if (!Item) {
-
-            }
-
-            debugger
-        }
-
         if (reference.Element) reference.Element.forEach((Element, index) => {
             // define regex for binding
             let value = null
@@ -211,11 +204,11 @@ export const HydrateDOM = (reference) => {
             // get the property from exposed data
             const ID = reference.id[index]
             const property = (!isNestedPropterty)? exposedData[ID][reference.propertyName] : utility.getNestedProperty(exposedData[ID], reference.propertyName)
-            
+
             // start updating placeholders with values
             switch (reference.type) {
                 case 'Primitive': return replacePrimitive(property, Element, Rgx)
-                case 'Object': return replaceObject(property, Element, Rgx)
+                case 'Object': return replacePrimitive(property, Element, Rgx)
                 // case 'Array': return replaceArray(property, Element, Rgx)
             }
         })

@@ -125,7 +125,6 @@ export const Setup = async (name: string, mounted: Function) => {
  * @constructor
  */
 export const Reactive = (key: string, property: any | object) => {
-    let object = null
     const checkForNestedObjectsAndMakeReactive = (data) => {
         for (const valueKey in data) {
             if (!(Array.isArray(data[valueKey])) && (typeof data[valueKey] === 'object')) {
@@ -138,8 +137,15 @@ export const Reactive = (key: string, property: any | object) => {
     // if property is object
     if (!(Array.isArray(property)) && (typeof property === 'object')) {
         checkForNestedObjectsAndMakeReactive(property)
-        object = {...property, isReactive: "Object"}
-        return new Proxy(Object, Handler())
+
+        const target = {
+            object: {...property},
+            name: key,
+            type: 'Object',
+        }
+
+        // @ts-ignore
+        return [target.object, (callback) => Set(target, undefined, callback(target.object))]
     }
 
     // if property is Array
@@ -147,14 +153,21 @@ export const Reactive = (key: string, property: any | object) => {
         const target = {
             Array: property,
             name: key,
-            isDirective: true
+            type: 'Array',
         }
         // @ts-ignore
         return [property, (callback) => Set(target, undefined, callback(property))]
     }
 
-    object = {value: property, isReactive: "Primitive"}
-    return new Proxy(object, Handler())
+    // if the property is a primative value
+    const target = {
+        value: property,
+        name: key,
+        type: 'Primative',
+    }
+
+    // @ts-ignore
+    return [target.value, (callback) => Set(target, undefined, callback(target.value))]
 }
 
 /**

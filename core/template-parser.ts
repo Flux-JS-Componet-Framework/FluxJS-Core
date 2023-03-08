@@ -60,9 +60,6 @@ export const collectReactiveElements = async (Component: T_COMPONENT) => {
             if ((Element.children.length === 0) && (!isChildComponent)) {
                 // store all reactivity bindings found in element
                 await utility.storeReactiveBindingsAndTheirElements(Component, Element)
-
-                // store all directive bindings found in element
-                await utility.storeDirectiveBindingsandTheirElements(Component, Element)
             }
         }
 

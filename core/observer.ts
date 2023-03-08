@@ -12,11 +12,11 @@ export const deleteProperty = (target: object, key: string) => Reflect.deletePro
 export const Set = async (target: object, key: string, value: any) => {
     // start updating exposed data and DOM
     if (Globals.get("RenderProcessStarted") === false) {
-        // hydrates reactive elements
-        if (target.name) await reactivityHydration(target, key, value)
+        // hydrates
+        if (target.type !== 'Array') await reactivityHydration(target, key, value)
 
-        // hydrate directives
-        if (target.isDirective) await directivesHydration(target, key, value)
+        // hydrate directives using array
+        if (target.type === 'Array') await directivesHydration(target, key, value)
     }
 }
 
@@ -25,15 +25,29 @@ export const Set = async (target: object, key: string, value: any) => {
  * @param target
  */
 export const reactivityHydration = async (target, key, value) => {
-    // update the target (key) with new value
-    Reflect.set(target, key, value)
-
     // get binding for reactive property
     const binding = Globals.get().reactivity[target.name]
     if (!binding) return
 
+    // get the exposed data for binding
+    const exposedData = Globals.get().exposedData[binding.id]
+
     // make sure to update exposed data with new target
-    Globals.get().exposedData[binding.id][target["name"]] = target
+    const updateExposedData = (value) => {
+        return exposedData[target["name"]] = value
+    }
+
+    // update primative
+    if (target.type === "Primative") {
+        target.value = value
+        updateExposedData(value)
+    }
+
+    // update object
+    if (target.type === "Object") {
+        target.object[key] = value
+        updateExposedData(target.object)
+    }
 
     // updated all elements in binding to have the RAW value at render
     for (const i in binding.bindings) {

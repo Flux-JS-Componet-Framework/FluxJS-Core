@@ -4,7 +4,7 @@ import * as Globals from "./globals"
 import {EventTypes} from "../libs/directives";
 import { HydrateDOM } from "./single-file-template";
 import {getInterpolationReferences} from "../libs/utility";
-import * as SFT from "@flux-js/core/core/single-file-template";
+import * as SFT from "./single-file-template";
 
 export const directiveIs_For = async (Element: Element, Component: T_COMPONENT): Promise<Element> => {
     return new Promise(async (resolve) => {
@@ -13,20 +13,10 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
             const Directives = Globals.get().directives
             const keys = utility.getKeysFromForDirective(Element)
             const dataArray: Array<any> = Globals.get().exposedData[Component.id][keys.data]
-            const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, Element.outerHTML)
-            const newElements: Array<Element> = generateElementsToBeRendered(dataArray, Bindings, keys, Element)
             const isChildComponent = Globals.componentElementKeyExists(Element.localName)
 
-            // insert generated elements at index in parent children
-            if (newElements.length > 0) Element.replaceWith(...newElements)
-
-            // directives need to be stored separately to reactivity
+            // start the new directive binding
             const newBinding = {}
-            newBinding['id'] = []
-            newBinding['Element'] = []
-            newBinding['type'] = "@for"
-            newBinding['Array'] = dataArray
-            newBinding['keys'] = keys
 
             // setup raw HTML for element
             if (isChildComponent) {
@@ -35,8 +25,21 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
                 newBinding['rawHTML'] = Element.outerHTML
             }
 
+            // generate elements
+            const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, newBinding['rawHTML'])
+            const newElements: Array<Element> = generateElementsToBeRendered(dataArray, Bindings, keys, Element.outerHTML)
+
+            // insert generated elements at index in parent children
+            if (newElements.length > 0) Element.replaceWith(...newElements)
+
+            newBinding['Element'] = [...newElements]
+            newBinding['type'] = "@for"
+            newBinding['id'] = Component.id
+            newBinding['keys'] = keys
+            newBinding['bindings'] = Bindings
+
             // save the new directive
-            // Directives[Component.id] = newBinding
+            Directives[keys.data] = newBinding
         }
         resolve(Element)
     })
@@ -49,7 +52,6 @@ export const updateForDirective = async (Binding, propertyName) => {
         const Element = elements[i]
         const dataKey = Element.attributes['data-key']
         const dataArray = Globals.get().exposedData[Binding.id][propertyName]
-        const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, Binding.rawHTML)
 
         // remove all elements that aren't the first key
         if (+dataKey.value !== 0) Element.remove()
@@ -57,27 +59,18 @@ export const updateForDirective = async (Binding, propertyName) => {
             // make sure the Element array length matches the amount of items in array
             const newElements: Array<Element> = generateElementsToBeRendered(
                 dataArray,
-                Binding.Bindings,
+                Binding.bindings,
                 Binding.keys,
-                utility.convertTextToDocument(Binding.rawHTML).body.firstChild
+                Binding.rawHTML
             )
 
             // replace old element with new
             Element.replaceWith(...newElements)
-
-            // update reactive binding's Element property with newly generated elements
-            await updateReactiveElementsInBinding(Binding.rawHTML)
-
-            // run hydration for reactive elements
-            for (const i in binding.bindings) {
-                const found = binding.bindings[i]
-                await SFT.HydrateDOM(found)
-            }
         }
     }
 }
 
-const generateElementsToBeRendered = (dataArray, Bindings, keys, Element): Array<Element> => {
+const generateElementsToBeRendered = (dataArray, Bindings, keys, String): Array<Element> => {
     // generated elements
     const newElements: Array<Element> = []
 
@@ -86,21 +79,23 @@ const generateElementsToBeRendered = (dataArray, Bindings, keys, Element): Array
 
     // start the loop over the data array
     if (dataArray && dataArray.length > 0) dataArray.forEach((item, index) => {
-        // start replacing all found bindings
-
+        /**
+         * hydrates the element if there are any bindings
+         * found directly on the element
+         */
         Bindings.forEach(found => {
             const Rgx = new RegExp(found.binding, "g")
             const property = found.propertyName.replace(`${keys.alias}.`, "")
-            const value = (found.propertyName.indexOf(".") !== -1)
-                ? utility.getNestedProperty(item, property)
-                : item
+            const value = (found.propertyName.indexOf(".") === -1)
+                ? item[found.propertyName]
+                : utility.getNestedProperty(item, property)
 
-            if (parsedElementString === "") parsedElementString = Element.outerHTML.replace(Rgx, value)
+            if (parsedElementString === "") parsedElementString = String.replace(Rgx, value)
             else parsedElementString = parsedElementString.replace(Rgx, value)
         })
 
-        // if there are no bindings found set the parsedElementString up
-        if (Bindings.length === 0) parsedElementString = Element.outerHTML
+        // if there are no bindings found set the parsedElementString updebugger
+        if (Bindings.length === 0) parsedElementString = String
 
         // convert string element to HTML
         const newElement = utility.convertTextToDocument(parsedElementString).body.firstChild
@@ -116,7 +111,6 @@ const generateElementsToBeRendered = (dataArray, Bindings, keys, Element): Array
             newElement.setAttribute(`data-alias`, keys.alias)
             // @ts-ignore
             newElement.setAttribute(`data-key`, index)
-
 
             newElements.push(newElement)
         }

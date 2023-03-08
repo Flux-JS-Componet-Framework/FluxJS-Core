@@ -347,6 +347,7 @@ export const getKeysFromForDirective = (Element: Element): { alias: string, data
 export const storeReactiveBindingsAndTheirElements = async (Component: T_COMPONENT, Element: Element) => {
     const reactivity = Globals.get().reactivity
     const Bindings = await getInterpolationReferences(/{([^}]+)}/g, Element.outerHTML)
+
     if (Bindings.length > 0) {
         Bindings.forEach((found, i) => {
             // set a data attribute on element
@@ -367,7 +368,7 @@ export const storeReactiveBindingsAndTheirElements = async (Component: T_COMPONE
             }, [])
 
             // check if the found binding already exists
-            const existing = reactivity[found.propertyName]
+            const existing = reactivity[found.propertyName.split('.')[0]]
             if (existing) {
                 // check if the current element is stored in existing binding
                 if (!existing['Element'].includes(Element)) {
@@ -376,44 +377,8 @@ export const storeReactiveBindingsAndTheirElements = async (Component: T_COMPONE
                 }
                 return
             }
-            else  reactivity[found.propertyName] = found
+            else  reactivity[found.propertyName.split('.')[0]] = found
         })
     }
 }
 
-export const storeDirectiveBindingsandTheirElements = async (Component: T_COMPONENT, Element: Element) => {
-    const Directives = Globals.get().directives
-    const Bindings = await getInterpolationReferences(/{([^}]+)}/g, Element.outerHTML)
-
-    // get the directive binding for element
-    Bindings.forEach(found => {
-        // define defaults
-        found['Element'] = [Element]
-        found['rawHTML'] = Element.innerHTML
-        found['id'] = [Component.id]
-        found['type'] = (found.propertyName.indexOf('.') !== -1)? 'Object' : "Primitive"
-        found['bindings'] = Bindings.reduce((_acc, found) => {
-            _acc.push({ ...found })
-            return _acc
-        }, [])
-
-        // check if the found binding already exists
-        const existing = Directives[found.propertyName]
-        if (existing) {
-            // check if the current element is stored in existing binding
-            if (!existing['Element'].includes(Element)) {
-                existing['Element'].push(Element)
-                existing['id'].push(Component.id)
-            }
-            return
-        } else Directives[found.propertyName] = found
-    })
-}
-
-export const getDirectiveToUpdate = () => {
-    const Directives = Globals.get().directives
-    for (const alias in Directives) {
-        const directive = Directives[alias]
-
-    }
-}
