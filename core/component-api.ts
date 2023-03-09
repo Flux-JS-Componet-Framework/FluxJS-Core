@@ -80,20 +80,11 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
         const exposedData =  Globals.get('exposedData')
         exposedData[self.id] = {...passed_props, ...reactiveProperties}
 
-        // check for Defined props
-        // const data = exposedData[self.id]
-        // for (const key in data) {
-        //     // if property was created using Def(), store real property name
-        //     if (data[key]?.isReactive) {
-        //         data[key]["name"] = key;
-        //     }
-        // }
-
         // setup this component's template
         this.html = await this.Setup()
 
         // this.reactivity = await collectReactiveElements(this)
-        await OnEvents(this)
+        // await OnEvents(this)
 
         // wait till the entire component tree has been set up and then render
         const renderProcessStarted: boolean =  Globals.get("RenderProcessStarted")
@@ -115,6 +106,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
 
             //apply directive logic
             await SFT.manageBindingsForDirectives(this)
+
 
             // initialize the component and its children
             await SFT.mountChildrenComponents(this)

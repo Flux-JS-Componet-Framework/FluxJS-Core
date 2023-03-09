@@ -241,7 +241,7 @@ export const getChildPropsFromElement = async (Element: Element, Self: T_COMPONE
                     const Array = (Element.attributes["data-property"])? Element.attributes["data-property"].value : null
                     const key = (Element.attributes["data-key"])? Element.attributes["data-key"].value : null
                     const property = attributeSplit[attributeSplit.length -1]
-
+                    debugger
                     if (Array) {
                         propValue = exposedData[Self.id][Array][key][property]
                     }
@@ -382,3 +382,33 @@ export const storeReactiveBindingsAndTheirElements = async (Component: T_COMPONE
     }
 }
 
+export const getMountingMethodForChild = (Element, Component, newPossibleChild): Promise<Function> => {
+    return new Promise(async (resolve) => {
+        // add newly created child to parents (Component) children
+        newPossibleChild.id = getUniqueComponentId()
+        Component.children.push(newPossibleChild)
+
+        // get the child from parent array
+        let Child = Component.getChildById(newPossibleChild.id)[0]
+
+        // initialize child passing any props passed in registered
+        const Props = await getChildPropsFromElement(Element, Component)
+
+        // save child initializations
+        resolve(async () => {
+
+            // mount the child component
+            Child = await Child.Mount(Props, Child.id)
+
+            // check for slot data
+            const childSlotElement = Child.html.body.getElementsByTagName('slot')
+            if (childSlotElement.length > 0) {
+                // setup the slot data
+                Child.slotData = convertTextToDocument(Element.innerHTML).body
+
+                // replace slot element with defined slot data
+                childSlotElement[0].replaceWith(Child.slotData)
+            }
+        })
+    })
+}

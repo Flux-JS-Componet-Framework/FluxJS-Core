@@ -120,6 +120,8 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
 
                     // save child initializations
                     childrenFound.push(async () => {
+                        // check to see if the element has the @for directive
+                        if (element.attributes['data-property']) return
 
                         // mount the child component
                         Child = await Child.Mount(Props, Child.id)
@@ -133,9 +135,6 @@ export const mountChildrenComponents = async (Self: T_COMPONENT) => {
                             // replace slot element with defined slot data
                             childSlotElement[0].replaceWith(Child.slotData)
                         }
-
-                        // check to see if the element has the @for directive
-                        if (element.attributes['data-property']) return
 
                         // clear out component element
                         element.innerHTML = ""

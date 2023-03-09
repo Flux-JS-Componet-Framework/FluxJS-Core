@@ -73,8 +73,7 @@ export const Component = async ( name: string, url?: string ): Promise<T_COMPONE
         const styles_text = Template.getElementsByTagName("style")[0].innerHTML
 
         // run the pre-fetch on the component to get its setup function
-        const component_tree_queue = Globals.get('component_tree_queue');
-        component_tree_queue.push(name)
+        const component_tree_queue = Globals.get('component_tree_queue');component_tree_queue.push(name)
         Globals.set('component_tree_queue', component_tree_queue)
 
         await SFT.runComponentScript(script_text, name)
@@ -156,7 +155,7 @@ export const Reactive = (key: string, property: any | object) => {
             type: 'Array',
         }
         // @ts-ignore
-        return [property, (callback) => Set(target, undefined, callback(property))]
+        return [property, (callback) => Set(target, undefined, callback(target.Array))]
     }
 
     // if the property is a primative value

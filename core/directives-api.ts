@@ -4,7 +4,9 @@ import * as Globals from "./globals"
 import {EventTypes} from "../libs/directives";
 import { HydrateDOM } from "./single-file-template";
 import {getInterpolationReferences} from "../libs/utility";
+import { OnEvents } from "./template-parser";
 import * as SFT from "./single-file-template";
+import {getMountingMethodForChild} from "@flux-js/core/libs/utility";
 
 export const directiveIs_For = async (Element: Element, Component: T_COMPONENT): Promise<Element> => {
     return new Promise(async (resolve) => {
@@ -14,23 +16,30 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
             const keys = utility.getKeysFromForDirective(Element)
             const dataArray: Array<any> = Globals.get().exposedData[Component.id][keys.data]
             const isChildComponent = Globals.componentElementKeyExists(Element.localName)
+            let Child = Object.assign({}, Globals.getComponentByKey(Element.localName))
 
             // start the new directive binding
             const newBinding = {}
 
             // setup raw HTML for element
+            const childrenToMount = []
             if (isChildComponent) {
-                const newPossibleChild = Object.assign({}, Globals.getComponentByKey(Element.localName))
-                Element.innerHTML = newPossibleChild.template_text()
+                Element.innerHTML = Child.template_text()
                 newBinding['rawHTML'] = Element.outerHTML
             }
 
             // generate elements
             const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, newBinding['rawHTML'])
-            const newElements: Array<Element> = generateElementsToBeRendered(dataArray, Bindings, keys, Element.outerHTML)
+            const newElements: Array<Element> = await generateElementsToBeRendered(dataArray, Bindings, keys, Element.outerHTML, Component)
 
             // insert generated elements at index in parent children
             if (newElements.length > 0) Element.replaceWith(...newElements)
+
+            for (let i = 0; i < newElements.length; i++) {
+                const generatedElement = newElements[i]
+                const Mount = await utility.getMountingMethodForChild(generatedElement, Component, Child)
+                Mount()
+            }
 
             newBinding['Element'] = [...newElements]
             newBinding['type'] = "@for"
@@ -51,17 +60,19 @@ export const updateForDirective = async (Binding, propertyName) => {
     for (let i = 0; i < elements.length; i++) {
         const Element = elements[i]
         const dataKey = Element.attributes['data-key']
+        const componentID = Element.attributes['data-id']
         const dataArray = Globals.get().exposedData[Binding.id][propertyName]
 
         // remove all elements that aren't the first key
         if (+dataKey.value !== 0) Element.remove()
         else {
             // make sure the Element array length matches the amount of items in array
-            const newElements: Array<Element> = generateElementsToBeRendered(
+            const newElements: Array<Element> = await generateElementsToBeRendered(
                 dataArray,
                 Binding.bindings,
                 Binding.keys,
-                Binding.rawHTML
+                Binding.rawHTML,
+                {id: componentID}
             )
 
             // replace old element with new
@@ -70,7 +81,7 @@ export const updateForDirective = async (Binding, propertyName) => {
     }
 }
 
-const generateElementsToBeRendered = (dataArray, Bindings, keys, String): Array<Element> => {
+const generateElementsToBeRendered = async (dataArray, Bindings, keys, String, Component: T_COMPONENT): Array<Element> => {
     // generated elements
     const newElements: Array<Element> = []
 
@@ -78,7 +89,7 @@ const generateElementsToBeRendered = (dataArray, Bindings, keys, String): Array<
     let parsedElementString = ""
 
     // start the loop over the data array
-    if (dataArray && dataArray.length > 0) dataArray.forEach((item, index) => {
+    if (dataArray && dataArray.length > 0) dataArray.forEach( async (item, index) => {
         /**
          * hydrates the element if there are any bindings
          * found directly on the element
@@ -111,6 +122,21 @@ const generateElementsToBeRendered = (dataArray, Bindings, keys, String): Array<
             newElement.setAttribute(`data-alias`, keys.alias)
             // @ts-ignore
             newElement.setAttribute(`data-key`, index)
+            newElement.setAttribute(`data-id`, Component.id)
+
+            const isChildComponent = Globals.componentElementKeyExists(newElement.localName)
+            let Child = Object.assign({}, Globals.getComponentByKey(newElement.localName))
+            if (isChildComponent) {
+                const Mount = await utility.getMountingMethodForChild(newElement, Component, Child)
+                Mount()
+            }
+
+            // add events
+            // @ts-ignore
+            await OnEvents({
+                id: Component.id,
+                html: utility.convertTextToDocument(newElement.innerHTML)
+            })
 
             newElements.push(newElement)
         }
