@@ -10,6 +10,7 @@ export const deleteProperty = (target: object, key: string) => Reflect.deletePro
 
 
 export const Set = async (target: object, key: string, value: any) => {
+    debugger
     // start updating exposed data and DOM
     if (Globals.get("RenderProcessStarted") === false) {
         // hydrates
@@ -25,6 +26,7 @@ export const Set = async (target: object, key: string, value: any) => {
  * @param target
  */
 export const reactivityHydration = async (target, key, value) => {
+    debugger
     // get binding for reactive property
     const binding = Globals.get().reactivity[target.name]
     if (!binding) return

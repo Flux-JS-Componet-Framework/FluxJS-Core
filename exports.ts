@@ -139,13 +139,17 @@ export const Reactive = (key: string, property: any | object) => {
         checkForNestedObjectsAndMakeReactive(property)
 
         const target = {
-            object: {...property},
+            object: new Proxy(property, {
+                set: (_target, _key, _value) => {
+                    debugger
+                }
+            }),
             name: key,
             type: 'Object',
         }
 
         // @ts-ignore
-        return [target.object, (callback) => Set(target, undefined, callback(target.object))]
+        return [() => target.object, (callback) => callback(target.object)]
     }
 
     // if property is Array
