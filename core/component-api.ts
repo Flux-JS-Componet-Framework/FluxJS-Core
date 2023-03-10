@@ -84,7 +84,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
         this.html = await this.Setup()
 
         // this.reactivity = await collectReactiveElements(this)
-        // await OnEvents(this)
+        await OnEvents(this)
 
         // wait till the entire component tree has been set up and then render
         const renderProcessStarted: boolean =  Globals.get("RenderProcessStarted")
@@ -127,7 +127,7 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
             Globals.set("RenderProcessStarted", true)
 
             // render the root component
-            Globals.get().renderElement.appendChild(Globals.get().root.html.body)
+            if (Globals.get().root.html.body) Globals.get().renderElement.appendChild(Globals.get().root.html.body)
 
             // hydrate the initial reactive data updates
             const reactivity = Globals.get().reactivity

@@ -1,12 +1,7 @@
 import T_COMPONENT from "../interfaces/T_component"
 import * as utility from "../libs/utility"
 import * as Globals from "./globals"
-import {EventTypes} from "../libs/directives";
-import { HydrateDOM } from "./single-file-template";
 import {getInterpolationReferences} from "../libs/utility";
-import { OnEvents } from "./template-parser";
-import * as SFT from "./single-file-template";
-import {getMountingMethodForChild} from "@flux-js/core/libs/utility";
 
 export const directiveIs_For = async (Element: Element, Component: T_COMPONENT): Promise<Element> => {
     return new Promise(async (resolve) => {
@@ -18,27 +13,48 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
             const isChildComponent = Globals.componentElementKeyExists(Element.localName)
             let Child = Object.assign({}, Globals.getComponentByKey(Element.localName))
 
+
+            // replace placeholder element with new one
+            const placeHolderID = utility.randomString(8)
+            const placeHolder = document.createElement('div')
+            placeHolder.id = placeHolderID
+            Element.replaceWith(placeHolder)
+
             // start the new directive binding
             const newBinding = {}
 
-            // setup raw HTML for element
-            const childrenToMount = []
+            // if the element is a component
             if (isChildComponent) {
+                // setup the raw HTML for the binding
                 Element.innerHTML = Child.template_text()
                 newBinding['rawHTML'] = Element.outerHTML
+
+                // make sure to remove any elements that are bound to the child
+                const bindingsDOM = utility.convertTextToDocument(newBinding['rawHTML'])
+                const bindingsDOMArray = bindingsDOM.body.getElementsByTagName("*")
+                for (let i = 0; i < bindingsDOMArray.length; i++) {
+                    const bindingDOMElement = bindingsDOMArray[i]
+                    if (bindingDOMElement.attributes['@for'] && (bindingDOMElement.localName !== Element.localName)) bindingDOMElement.remove()
+                }
+
+                // define the bindings found in the raw HTML
+                newBinding['bindingsRawHTML'] = bindingsDOM.body.outerHTML
             }
 
             // generate elements
-            const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, newBinding['rawHTML'])
-            const newElements: Array<Element> = await generateElementsToBeRendered(dataArray, Bindings, keys, Element.outerHTML, Component)
+            const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, newBinding['bindingsRawHTML'])
+
+            const newElements: Array<Element> = await generateElementsToBeRendered(
+                dataArray,
+                Bindings,
+                keys,
+                Element.outerHTML,
+                Component
+            )
 
             // insert generated elements at index in parent children
-            if (newElements.length > 0) Element.replaceWith(...newElements)
-
-            for (let i = 0; i < newElements.length; i++) {
-                const generatedElement = newElements[i]
-                const Mount = await utility.getMountingMethodForChild(generatedElement, Component, Child)
-                Mount()
+            if (newElements.length > 0) {
+                placeHolder.replaceWith(...newElements)
             }
 
             newBinding['Element'] = [...newElements]
@@ -57,22 +73,24 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
 export const updateForDirective = async (Binding, propertyName) => {
     const Directives = Globals.get().directives
     const elements = document.querySelectorAll(`[data-property=${propertyName}]`)
+
     for (let i = 0; i < elements.length; i++) {
         const Element = elements[i]
         const dataKey = Element.attributes['data-key']
-        const componentID = Element.attributes['data-id']
+        const componentID = Element.attributes['data-id'].value
         const dataArray = Globals.get().exposedData[Binding.id][propertyName]
 
         // remove all elements that aren't the first key
         if (+dataKey.value !== 0) Element.remove()
         else {
+            debugger
             // make sure the Element array length matches the amount of items in array
             const newElements: Array<Element> = await generateElementsToBeRendered(
                 dataArray,
                 Binding.bindings,
                 Binding.keys,
                 Binding.rawHTML,
-                {id: componentID}
+                { id: componentID }
             )
 
             // replace old element with new
@@ -82,70 +100,90 @@ export const updateForDirective = async (Binding, propertyName) => {
 }
 
 const generateElementsToBeRendered = async (dataArray, Bindings, keys, String, Component: T_COMPONENT): Array<Element> => {
-    // generated elements
-    const newElements: Array<Element> = []
+    return new Promise(async (resolve) => {
+        // generated elements
+        const newElements: Array<Element> = []
 
-    // starting string for new element
-    let parsedElementString = ""
+        // starting string for new element
+        let parsedElementString = ""
 
-    // start the loop over the data array
-    if (dataArray && dataArray.length > 0) dataArray.forEach( async (item, index) => {
-        /**
-         * hydrates the element if there are any bindings
-         * found directly on the element
-         */
-        Bindings.forEach(found => {
-            const Rgx = new RegExp(found.binding, "g")
-            const property = found.propertyName.replace(`${keys.alias}.`, "")
-            const value = (found.propertyName.indexOf(".") === -1)
-                ? item[found.propertyName]
-                : utility.getNestedProperty(item, property)
+        // start the loop over the data array
+        if (dataArray && dataArray.length > 0) dataArray.forEach( async (item, index) => {
+            /**
+             * hydrates the element if there are any bindings
+             * found directly on the element
+             */
+            Bindings.forEach(found => {
+                const Rgx = new RegExp(found.binding, "g")
+                const property = found.propertyName.replace(`${keys.alias}.`, "")
 
-            if (parsedElementString === "") parsedElementString = String.replace(Rgx, value)
-            else parsedElementString = parsedElementString.replace(Rgx, value)
-        })
+                const value = (found.propertyName.indexOf(".") === -1)
+                    ? (item[property])? item[property] : 'undefined'
+                    : utility.getNestedProperty(item, property)
 
-        // if there are no bindings found set the parsedElementString updebugger
-        if (Bindings.length === 0) parsedElementString = String
-
-        // convert string element to HTML
-        const newElement = utility.convertTextToDocument(parsedElementString).body.firstChild
-        if (newElement) {
-            // remove @for attribute
-            // @ts-ignore
-            newElement.removeAttribute('@for')
-
-            // if element has event on it define options for it
-            // @ts-ignore
-            newElement.setAttribute(`data-property`, keys.data)
-            // @ts-ignore
-            newElement.setAttribute(`data-alias`, keys.alias)
-            // @ts-ignore
-            newElement.setAttribute(`data-key`, index)
-            newElement.setAttribute(`data-id`, Component.id)
-
-            const isChildComponent = Globals.componentElementKeyExists(newElement.localName)
-            let Child = Object.assign({}, Globals.getComponentByKey(newElement.localName))
-            if (isChildComponent) {
-                const Mount = await utility.getMountingMethodForChild(newElement, Component, Child)
-                Mount()
-            }
-
-            // add events
-            // @ts-ignore
-            await OnEvents({
-                id: Component.id,
-                html: utility.convertTextToDocument(newElement.innerHTML)
+                if (parsedElementString === "") parsedElementString = String.replace(Rgx, value)
+                else parsedElementString = parsedElementString.replace(Rgx, value)
             })
 
-            newElements.push(newElement)
+            // if there are no bindings found set the parsedElementString updebugger
+            if (Bindings.length === 0) parsedElementString = String
+
+            // convert string element to HTML
+            const newElement = utility.convertTextToDocument(parsedElementString).body.firstChild
+            if (newElement) {
+                // remove @for attribute
+                // @ts-ignore
+                newElement.removeAttribute('@for')
+
+                // if element has event on it define options for it
+                // @ts-ignore
+                newElement.setAttribute(`data-property`, keys.data)
+                // @ts-ignore
+                newElement.setAttribute(`data-alias`, keys.alias)
+                // @ts-ignore
+                newElement.setAttribute(`data-key`, index)
+                newElement.setAttribute(`data-id`, Component.id)
+
+                newElements.push(newElement)
+            }
+
+            // reset
+            parsedElementString = ""
+        })
+
+        // add events
+        for (let i = 0; i < newElements.length; i++) {
+            let Child = Object.assign({}, Globals.getComponentByKey(newElements[i].localName))
+            const isChildComponent = Globals.componentElementKeyExists(newElements[i].localName)
+            const property = newElements[i].attributes['data-property'].value
+            const alias = newElements[i].attributes['data-alias'].value
+            const key = newElements[i].attributes['data-key'].value
+
+            // mount a new child
+            let exposedData = {}
+            if (isChildComponent) exposedData = await utility.mountChild(newElements[i], Child, Component)
+            else exposedData = Globals.get().exposedData[Component.id]
+            
+            // apply events
+            if (newElements[i].children.length !== 0) {
+                const children = newElements[i].getElementsByTagName('*')
+                for (let j = 0; j < children.length; j++) {
+                    utility.applyEventsToGeneratedElements(
+                        children[j],
+                        exposedData,
+                        { property, alias, key }
+                    )
+                }
+            }
+            else utility.applyEventsToGeneratedElements(
+                newElements[i],
+                exposedData,
+                { property, alias, key }
+            )
         }
 
-        // reset
-        parsedElementString = ""
+        resolve(newElements)
     })
-
-    return newElements
 }
 
 export const updateReactiveElementsInBinding = async (String: string) => {

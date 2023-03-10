@@ -28,6 +28,7 @@ export const OnEvents = (Component: T_COMPONENT) => {
                 const dataProperty = (Attributes["data-property"])? Attributes["data-property"].value : null
                 const key = (Attributes["data-key"])? Attributes["data-key"].value : null
                 const alias = (Attributes["data-alias"])? Attributes["data-alias"].value: null
+
                 if (dataProperty) {
                     const arrayMethodName = method.replace(`${alias}.`, "").split("(")[0]
                     if (exposedData[Component.id][dataProperty][key][arrayMethodName]) {

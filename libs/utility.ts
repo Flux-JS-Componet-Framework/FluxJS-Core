@@ -2,6 +2,7 @@ import * as Globals from "../core/globals";
 import T_COMPONENT from "../interfaces/T_component";
 import {elementInterpolation} from "../core/template-parser";
 import { directiveAttributes } from "./directives";
+import {EventTypes} from "../libs/directives";
 
 /**
  * Checks if a property is nested
@@ -241,7 +242,7 @@ export const getChildPropsFromElement = async (Element: Element, Self: T_COMPONE
                     const Array = (Element.attributes["data-property"])? Element.attributes["data-property"].value : null
                     const key = (Element.attributes["data-key"])? Element.attributes["data-key"].value : null
                     const property = attributeSplit[attributeSplit.length -1]
-                    debugger
+
                     if (Array) {
                         propValue = exposedData[Self.id][Array][key][property]
                     }
@@ -382,33 +383,36 @@ export const storeReactiveBindingsAndTheirElements = async (Component: T_COMPONE
     }
 }
 
-export const getMountingMethodForChild = (Element, Component, newPossibleChild): Promise<Function> => {
-    return new Promise(async (resolve) => {
-        // add newly created child to parents (Component) children
-        newPossibleChild.id = getUniqueComponentId()
-        Component.children.push(newPossibleChild)
+export const mountChild = async (Element, Child, Component: T_COMPONENT): Promise<Object> => {
+    const ID = getUniqueComponentId()
+    const Props = await getChildPropsFromElement(Element, Component)
+    Child = await Child.Mount(Props, ID)
+    return Globals.get().exposedData[Child.id]
+}
 
-        // get the child from parent array
-        let Child = Component.getChildById(newPossibleChild.id)[0]
+export const applyEventsToGeneratedElements = (Element, exposedData, keys) => {
+    // find the events on element
+    EventTypes.forEach(event => {
+        const foundEvent = Element.attributes[`on${event}`]
+        if (foundEvent) {
+            // get function or script you are trying to run
+            const method = foundEvent.value;
 
-        // initialize child passing any props passed in registered
-        const Props = await getChildPropsFromElement(Element, Component)
+            // remove onclick attribute and replace with custom one
+            Element.removeAttribute(`on${event}`);
 
-        // save child initializations
-        resolve(async () => {
-
-            // mount the child component
-            Child = await Child.Mount(Props, Child.id)
-
-            // check for slot data
-            const childSlotElement = Child.html.body.getElementsByTagName('slot')
-            if (childSlotElement.length > 0) {
-                // setup the slot data
-                Child.slotData = convertTextToDocument(Element.innerHTML).body
-
-                // replace slot element with defined slot data
-                childSlotElement[0].replaceWith(Child.slotData)
+            // define the function
+            const Function = (...args) => {
+                const functionName = method.split("(")[0]
+                if (exposedData[functionName]) {
+                    return exposedData[functionName].call(exposedData, ...args)
+                }
+                return
             }
-        })
+
+            Element[`on${event}`] = Function
+            Element.attributes[`on${event}`] = Function
+        }
     })
+
 }
