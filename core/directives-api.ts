@@ -41,9 +41,9 @@ export const directiveIs_For = async (Element: Element, Component: T_COMPONENT):
                 newBinding['bindingsRawHTML'] = bindingsDOM.body.outerHTML
             }
 
+
             // generate elements
             const Bindings = await utility.getInterpolationReferences(/{([^}]+)}/g, newBinding['bindingsRawHTML'])
-
             const newElements: Array<Element> = await generateElementsToBeRendered(
                 dataArray,
                 Bindings,
@@ -163,7 +163,7 @@ const generateElementsToBeRendered = async (dataArray, Bindings, keys, String, C
             let exposedData = {}
             if (isChildComponent) exposedData = await utility.mountChild(newElements[i], Child, Component)
             else exposedData = Globals.get().exposedData[Component.id]
-            
+
             // apply events
             if (newElements[i].children.length !== 0) {
                 const children = newElements[i].getElementsByTagName('*')
@@ -219,4 +219,13 @@ export const updateReactiveElementsInBinding = async (String: string) => {
             }
         })
     }
+}
+
+
+export const directive_Bind = async (Element: Element, Component: T_COMPONENT): Promise<Element> => {
+    return new Promise((resolve) => {
+
+
+        resolve(Element)
+    })
 }

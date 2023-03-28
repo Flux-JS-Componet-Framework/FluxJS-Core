@@ -4,7 +4,7 @@ import {directives} from "../libs/directives"
 import {elementInterpolation} from "./template-parser"
 import * as Globals from "./globals"
 import {Component} from "../exports";
-import {directiveIs_For} from "./directives-api";
+import {directiveIs_For, directive_Bind} from "./directives-api";
 
 /**
  * Adds a component script element to the DOM to run
@@ -170,28 +170,24 @@ export const HydrateDOM = (reference) => {
         }
 
         const replaceObject = (property, Element, Rgx) => {
-            debugger
-            // check to see if the object is a reactive property
-            if (reference.isReactive) {
-                if (reference.type === 'Primitive') {
-                    replacePrimitive(
-                        property.value,
-                        Element,
-                        Rgx
-                    )
-                }
+            if (reference.type === 'Primitive') {
+                replacePrimitive(
+                    property.value,
+                    Element,
+                    Rgx
+                )
+            }
 
-                if (reference.type === 'Object') {
-                    // define name to store binding under
-                    const split = reference.propertyName.split(".")
-                    const propertyName = (reference.propertyName.indexOf('.') !== -1)? split[split.length -1] : reference.propertyName
+            if (reference.type === 'Object') {
+                // define name to store binding under
+                const split = reference.propertyName.split(".")
+                const propertyName = (reference.propertyName.indexOf('.') !== -1)? split[split.length -1] : reference.propertyName
 
-                    replacePrimitive(
-                        property[propertyName],
-                        Element,
-                        Rgx
-                    )
-                }
+                replacePrimitive(
+                    property[propertyName],
+                    Element,
+                    Rgx
+                )
             }
 
         }
@@ -203,13 +199,9 @@ export const HydrateDOM = (reference) => {
             // get the property from exposed data
             const ID = reference.id[index]
             const property = (!isNestedPropterty)? exposedData[ID][reference.propertyName] : utility.getNestedProperty(exposedData[ID], reference.propertyName)
-
+            debugger
             // start updating placeholders with values
-            switch (reference.type) {
-                case 'Primitive': return replacePrimitive(property, Element, Rgx)
-                case 'Object': return replacePrimitive(property, Element, Rgx)
-                // case 'Array': return replaceArray(property, Element, Rgx)
-            }
+            replacePrimitive(property, Element, Rgx)
         })
         resolve()
     })
@@ -226,6 +218,9 @@ export const manageBindingsForDirectives = async (Component: T_COMPONENT): Promi
 
             // check for the (For) directive on the element
             Element = await directiveIs_For(Element, Component)
+
+            // check for the (:bind) directive on the element
+            Element = await directive_Bind(Element, Component)
         }
 
         resolve()

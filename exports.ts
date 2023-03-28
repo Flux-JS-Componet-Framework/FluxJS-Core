@@ -125,53 +125,58 @@ export const Setup = async (name: string, mounted: Function) => {
  * @constructor
  */
 export const Reactive = (key: string, property: any | object) => {
-    const checkForNestedObjectsAndMakeReactive = (data) => {
-        for (const valueKey in data) {
-            if (!(Array.isArray(data[valueKey])) && (typeof data[valueKey] === 'object')) {
-                data[valueKey] = new Proxy(data[valueKey], Handler())
-                checkForNestedObjectsAndMakeReactive(data[valueKey])
-            }
-        }
-    };
-
-    // if property is object
-    if (!(Array.isArray(property)) && (typeof property === 'object')) {
-        checkForNestedObjectsAndMakeReactive(property)
-
-        const target = {
-            object: new Proxy(property, {
-                set: (_target, _key, _value) => {
-                    debugger
-                }
-            }),
-            name: key,
-            type: 'Object',
-        }
-
-        // @ts-ignore
-        return [() => target.object, (callback) => callback(target.object)]
-    }
-
-    // if property is Array
-    if (property.constructor === Array) {
-        const target = {
-            Array: property,
-            name: key,
-            type: 'Array',
-        }
-        // @ts-ignore
-        return [property, (callback) => Set(target, undefined, callback(target.Array))]
-    }
-
-    // if the property is a primative value
+    const Reactivity = Globals.get().reactivity
+    const exposedData = Globals.get().exposedData
+    const existing = Reactivity[key]
     const target = {
+        id: [],
         value: property,
         name: key,
         type: 'Primative',
     }
 
+    // binding
+    const binding = {
+        Element: [],
+        id: [],
+        binding: `{ ${key} }`,
+        propertyName: key,
+        type: 'Primative',
+        isReactive: true,
+    }
+
+    // if property is object
+    if (!(Array.isArray(property)) && (typeof property === 'object')) {
+        target.type = 'Object'
+        binding.type = 'Object'
+        target['Object'] = property
+
+        // make sure there is no dulipcates
+        // if (!existing) Reactivity[key] = binding
+
+        // @ts-ignore
+        return [() => target.Object, (callback) => Set(target, undefined, callback(target.Object))]
+    }
+
+    // if property is Array
+    if (property.constructor === Array) {
+        target.type = 'Array'
+        binding.type = 'Array'
+        target['Array'] = property
+
+        // make sure there is no dulipcates
+        // if (!existing) Reactivity[key] = binding
+
+        // @ts-ignore
+        return [() => target.Array, (callback) => Set(target, undefined, callback(target.Array))]
+    }
+
+    // make sure there is no dulipcates
+    if (!existing) Reactivity[key] = binding
+
+    // if the property is a primative value
     // @ts-ignore
-    return [target.value, (callback) => Set(target, undefined, callback(target.value))]
+    return [() => target.value, (callback) => Set(target, undefined, callback(target.value))]
 }
 
 /**

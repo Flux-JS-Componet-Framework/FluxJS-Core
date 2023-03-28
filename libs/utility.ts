@@ -107,16 +107,11 @@ export const getNestedProperty = (object:object, string:string):any => {
     let len = pList.length;
     for (let i = 0; i < len - 1; i++) {
         let elem = pList[i];
-        // if (!schema[elem]) schema[elem] = {}
-        schema = schema[elem];
+        if (schema[elem]) schema = schema[elem];
     }
 
-    if (schema[pList[len - 1]] !== undefined) {
-        return schema[pList[len - 1]];
-    }
-    else {
-        return schema[pList[len - 1]];
-    }
+    const value = schema[pList[len - 1]]
+    return (value)? value : undefined
 }
 
 /**
@@ -358,7 +353,7 @@ export const storeReactiveBindingsAndTheirElements = async (Component: T_COMPONE
             found['Element'] = [Element]
             found['rawHTML'] = Element.innerHTML
             found['id'] = [Component.id]
-            found['type'] = (found.propertyName.indexOf('.') !== -1)? 'Object' : "Primitive"
+            found['type'] = (found.propertyName.indexOf('.') !== -1)? 'Object' : "Primative"
             found['bindings'] = Bindings.reduce((_acc, found) => {
                 _acc.push({
                     ...found,
@@ -370,11 +365,13 @@ export const storeReactiveBindingsAndTheirElements = async (Component: T_COMPONE
 
             // check if the found binding already exists
             const existing = reactivity[found.propertyName.split('.')[0]]
+            console.log('existing', existing)
             if (existing) {
                 // check if the current element is stored in existing binding
                 if (!existing['Element'].includes(Element)) {
                     existing['Element'].push(Element)
                     existing['id'].push(Component.id)
+                    reactivity[found.propertyName.split('.')[0]] = found
                 }
                 return
             }

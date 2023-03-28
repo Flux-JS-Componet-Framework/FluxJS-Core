@@ -80,6 +80,15 @@ export const ActiveNode = function(this: any, params: {name:string, id:string, s
         const exposedData =  Globals.get('exposedData')
         exposedData[self.id] = {...passed_props, ...reactiveProperties}
 
+        // assign ids to bindings that don't have
+        const Reactivity = Globals.get().reactivity
+        for (const binding in exposedData[self.id]) {
+            if (
+                Reactivity[binding] &&
+                (Reactivity[binding]['id'] == undefined)
+            ) Reactivity[binding].id = self.id
+        }
+
         // setup this component's template
         this.html = await this.Setup()
 

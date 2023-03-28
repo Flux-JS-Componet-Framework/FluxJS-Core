@@ -10,7 +10,6 @@ export const deleteProperty = (target: object, key: string) => Reflect.deletePro
 
 
 export const Set = async (target: object, key: string, value: any) => {
-    debugger
     // start updating exposed data and DOM
     if (Globals.get("RenderProcessStarted") === false) {
         // hydrates
@@ -26,40 +25,39 @@ export const Set = async (target: object, key: string, value: any) => {
  * @param target
  */
 export const reactivityHydration = async (target, key, value) => {
-    debugger
     // get binding for reactive property
     const binding = Globals.get().reactivity[target.name]
     if (!binding) return
 
     // get the exposed data for binding
-    const exposedData = Globals.get().exposedData[binding.id]
+    const exposedData = Globals.get().exposedData[binding.id[0]]
 
     // make sure to update exposed data with new target
-    const updateExposedData = (value) => {
-        return exposedData[target["name"]] = value
+    const updateExposedData = (value, key) => {
+        if (key) exposedData[target["name"]][key] = value
+        else exposedData[target["name"]] = value
+        return exposedData
     }
 
     // update primative
     if (target.type === "Primative") {
         target.value = value
-        updateExposedData(value)
+        updateExposedData(value, null)
     }
 
     // update object
-    if (target.type === "Object") {
-        target.object[key] = value
-        updateExposedData(target.object)
-    }
+    if (target.type === "Object") updateExposedData(target.Object, key)
 
     // updated all elements in binding to have the RAW value at render
     for (const i in binding.bindings) {
         const found = binding.bindings[i]
-        if (found.refreshElement && found.Element) found.Element.forEach(element => element.innerHTML = found.rawHTML)
+        if (found.refreshElement && binding.Element) binding.Element.forEach(element => element.innerHTML = binding.rawHTML)
     }
 
     // hydrate
     for (const i in binding.bindings) {
         const found = binding.bindings[i]
+        debugger
         await SFT.HydrateDOM(found)
     }
 }
